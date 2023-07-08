@@ -22,10 +22,10 @@ Usage:
 
 Options:
     --start             Start time of the time table. Default is current time.
-    --end               Maximum end time of the time table. If not defined, default of --duration is used.
-    --session-length    Set the length of a single pomodoro session.
+    --end               Maximum end time of the time table. Ignored if not defined.
+    --session-length    Set the length of a single pomodoro session. Default is 90 minutes.
     --duration          Set the working duration that should be covered by pomodoro sessions.
-    --pause-pattern     Set the pause pattern for the pauses between pomodoro sessions. Will be repeated.
+    --pause-pattern     Set the pause pattern for the pauses between pomodoro sessions. Will be repeated if it has less elements as --duration defines.
 ```
 
 For example, you want to work 6 hours with 25 minutes sessions and 5 minutes breaks. You can use the following command:

@@ -11,12 +11,12 @@ var (
 )
 
 func main() {
-	durationFlag := flag.String("duration", "", "number of units to learn")
-	sessionLengthFlag := flag.Int("session-length", 90, "length of each unit in minutes")
-	pausePatternFlag := flag.String("pause-pattern", "10", "pattern that specifies how long the pause after each unit should be")
+	durationFlag := flag.String("duration", "", "Set the working duration that should be covered by pomodoro sessions.")
+	sessionLengthFlag := flag.Int("session-length", 90, "Set the length of a single pomodoro session.")
+	pausePatternFlag := flag.String("pause-pattern", "10", "Set the pause pattern for the pauses between pomodoro sessions. Will be repeated if it has less elements as --duration defines.")
 
-	startFlag := flag.String("start", time.Now().Format("15:04"), "string of start time")
-	endFlag := flag.String("end", "", "string of end time")
+	startFlag := flag.String("start", time.Now().Format("15:04"), "Start time of the time table.")
+	endFlag := flag.String("end", "", "Maximum end time of the time table. Ignored if not defined.")
 
 	flag.Parse()
 
