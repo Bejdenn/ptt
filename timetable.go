@@ -4,14 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 	"strings"
 	"time"
 )
 
 type sessionInfo struct {
 	duration      time.Duration
-	sessionLength int
+	sessionLength time.Duration
 }
 
 type session struct {
@@ -27,9 +26,9 @@ type timetable struct {
 func generateTimetable(start, end time.Time, pausePattern string, sessions sessionInfo) (*timetable, error) {
 	tt := timetable{}
 
-	pauseDurations := []int{}
+	pauseDurations := []time.Duration{}
 	for _, pps := range strings.Split(pausePattern, "-") {
-		ppi, err := strconv.Atoi(pps)
+		ppi, err := time.ParseDuration(pps)
 		if err != nil {
 			return nil, fmt.Errorf("could not parse pause pattern string: %v", err)
 		}
@@ -45,7 +44,7 @@ func generateTimetable(start, end time.Time, pausePattern string, sessions sessi
 	var sessionEnd time.Time
 
 	for i := 0; ; i++ {
-		sessionEnd = sessionStart.Add(time.Minute * time.Duration(sessions.sessionLength))
+		sessionEnd = sessionStart.Add(sessions.sessionLength)
 
 		optimized := false
 		if !end.IsZero() && sessionEnd.After(end) {
@@ -85,7 +84,7 @@ func generateTimetable(start, end time.Time, pausePattern string, sessions sessi
 			break
 		}
 
-		sessionStart = sessionEnd.Add(time.Minute * time.Duration(pauseDurations[i%len(pauseDurations)]))
+		sessionStart = sessionEnd.Add(pauseDurations[i%len(pauseDurations)])
 	}
 
 	if len(tt.sessions) == 0 {

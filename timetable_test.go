@@ -23,8 +23,8 @@ func Test_generateTimetable(t *testing.T) {
 			name: "simple",
 			args: args{
 				start:        time.Date(2020, 1, 1, 10, 0, 0, 0, time.UTC),
-				pausePattern: "10",
-				sessions:     sessionInfo{duration: time.Duration(2) * time.Hour, sessionLength: 30},
+				pausePattern: "10m",
+				sessions:     sessionInfo{duration: time.Duration(2) * time.Hour, sessionLength: time.Duration(30) * time.Minute},
 			},
 			want: &timetable{
 				sessions: []session{
@@ -56,8 +56,8 @@ func Test_generateTimetable(t *testing.T) {
 			name: "different pause times",
 			args: args{
 				start:        time.Date(2020, 1, 1, 10, 0, 0, 0, time.UTC),
-				pausePattern: "10-5",
-				sessions:     sessionInfo{duration: time.Duration(2) * time.Hour, sessionLength: 30},
+				pausePattern: "10m-5m",
+				sessions:     sessionInfo{duration: time.Duration(2) * time.Hour, sessionLength: time.Duration(30) * time.Minute},
 			},
 			want: &timetable{
 				sessions: []session{
@@ -90,8 +90,8 @@ func Test_generateTimetable(t *testing.T) {
 			args: args{
 				start:        time.Date(2020, 1, 1, 18, 45, 0, 0, time.UTC),
 				end:          time.Date(2020, 1, 1, 20, 45, 0, 0, time.UTC),
-				pausePattern: "10",
-				sessions:     sessionInfo{duration: time.Duration(0), sessionLength: 90},
+				pausePattern: "10m",
+				sessions:     sessionInfo{duration: time.Duration(0), sessionLength: time.Duration(90) * time.Minute},
 			},
 			want: &timetable{
 				sessions: []session{
@@ -114,8 +114,8 @@ func Test_generateTimetable(t *testing.T) {
 			name: "session length not multiple of duration",
 			args: args{
 				start:        time.Date(2020, 1, 1, 18, 45, 0, 0, time.UTC),
-				pausePattern: "10",
-				sessions:     sessionInfo{duration: time.Duration(2) * time.Hour, sessionLength: 45},
+				pausePattern: "10m",
+				sessions:     sessionInfo{duration: time.Duration(2) * time.Hour, sessionLength: time.Duration(45) * time.Minute},
 			},
 			want: &timetable{
 				sessions: []session{

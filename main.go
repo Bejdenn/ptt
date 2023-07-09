@@ -12,8 +12,8 @@ var (
 
 func main() {
 	durationFlag := flag.String("duration", "", "Set the working duration that should be covered by pomodoro sessions.")
-	sessionLengthFlag := flag.Int("session-length", 90, "Set the length of a single pomodoro session.")
-	pausePatternFlag := flag.String("pause-pattern", "10", "Set the pause pattern for the pauses between pomodoro sessions. Will be repeated if it has less elements as --duration defines.")
+	sessionLengthFlag := flag.String("session-length", "90m", "Set the length of a single pomodoro session.")
+	pausePatternFlag := flag.String("pause-pattern", "10m", "Set the pause pattern for the pauses between pomodoro sessions. Will be repeated if it has less elements as --duration defines.")
 
 	startFlag := flag.String("start", time.Now().Format("15:04"), "Start time of the time table.")
 	endFlag := flag.String("end", "", "Maximum end time of the time table. Ignored if not defined.")
@@ -24,6 +24,16 @@ func main() {
 	if *durationFlag != "" {
 		var err error
 		duration, err = time.ParseDuration(*durationFlag)
+		if err != nil {
+			fmt.Printf("could not parse duration: %v\n", err)
+			return
+		}
+	}
+
+	var sessionLength time.Duration
+	if *sessionLengthFlag != "" {
+		var err error
+		sessionLength, err = time.ParseDuration(*sessionLengthFlag)
 		if err != nil {
 			fmt.Printf("could not parse duration: %v\n", err)
 			return
@@ -49,7 +59,7 @@ func main() {
 		*pausePatternFlag = ""
 	}
 
-	tt, err := generateTimetable(start, end, *pausePatternFlag, sessionInfo{duration, *sessionLengthFlag})
+	tt, err := generateTimetable(start, end, *pausePatternFlag, sessionInfo{duration, sessionLength})
 	if err != nil {
 		fmt.Printf("could not generate timetable: %v\n", err)
 		return
