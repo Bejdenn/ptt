@@ -8,6 +8,11 @@ import (
 	"time"
 )
 
+var (
+	step      = 5
+	threshold = step
+)
+
 type sessionInfo struct {
 	duration      time.Duration
 	sessionLength time.Duration
@@ -37,7 +42,18 @@ func generateTimetable(start, end time.Time, pausePattern string, sessions sessi
 
 	if sessions.duration == time.Duration(0) && end.IsZero() {
 		// neither duration nor end time given, so default to 6 hours of work
-		sessions.duration = time.Duration(6) * time.Hour
+		sessions.duration = time.Duration(6 * time.Hour)
+	}
+
+	if sessions.duration != time.Duration(0) {
+		endTemp := start.Add(sessions.duration)
+		for i := 0; i < int(math.Ceil(sessions.duration.Minutes()/sessions.sessionLength.Minutes())-1); i++ {
+			endTemp = endTemp.Add(pauseDurations[i%len(pauseDurations)])
+		}
+
+		if end.IsZero() || end.After(endTemp) {
+			end = endTemp
+		}
 	}
 
 	sessionStart := start
@@ -46,43 +62,18 @@ func generateTimetable(start, end time.Time, pausePattern string, sessions sessi
 	for i := 0; ; i++ {
 		sessionEnd = sessionStart.Add(sessions.sessionLength)
 
-		optimized := false
 		if !end.IsZero() && sessionEnd.After(end) {
 			// optimize rest time to end by filling up the session with a unit that is a fraction of the given unit length
 			opt := int(math.Max(0, end.Sub(sessionStart).Minutes())/float64(step)) * step
-			if opt <= step {
+			if opt <= threshold {
 				break
 			}
 
 			sessionEnd = sessionStart.Add(time.Minute * time.Duration(opt))
-			optimized = true
-		}
-
-		if sessions.duration != time.Duration(0) && tt.totalWork+sessionEnd.Sub(sessionStart) > sessions.duration {
-			opt := int(math.Max(0, (sessions.duration-tt.totalWork).Minutes())/float64(step)) * step
-			if opt <= step {
-				break
-			}
-
-			sessionEnd = sessionStart.Add(time.Minute * time.Duration(opt))
-			optimized = true
 		}
 
 		tt.totalWork += sessionEnd.Sub(sessionStart)
 		tt.sessions = append(tt.sessions, session{i + 1, sessionStart, sessionEnd})
-
-		// this flag is necessary because the conditions at the bottom of the loop will never be true if a session is irregular and has to be optimized
-		if optimized {
-			break
-		}
-
-		if tt.totalWork == sessions.duration {
-			break
-		}
-
-		if sessionEnd.Equal(end) {
-			break
-		}
 
 		sessionStart = sessionEnd.Add(pauseDurations[i%len(pauseDurations)])
 	}

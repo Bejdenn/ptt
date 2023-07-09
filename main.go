@@ -6,10 +6,6 @@ import (
 	"time"
 )
 
-var (
-	step = 5
-)
-
 func main() {
 	durationFlag := flag.String("duration", "", "Set the working duration that should be covered by pomodoro sessions.")
 	sessionLengthFlag := flag.String("session-length", "90m", "Set the length of a single pomodoro session.")
