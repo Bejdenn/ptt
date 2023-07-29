@@ -33,7 +33,7 @@ type ErrStartAfterEnd struct {
 }
 
 func (e ErrStartAfterEnd) Error() string {
-	return fmt.Sprintf("start (%v) is after end (%v)", e.start.Format(time.TimeOnly), e.end.Format(time.TimeOnly))
+	return fmt.Sprintf("start (%v) is after end (%v)", e.start.Format(time.UnixDate), e.end.Format(time.UnixDate))
 }
 
 func generateTimetable(start, end time.Time, pausePattern []time.Duration, sessions sessionInfo) (*timetable, error) {
@@ -41,7 +41,7 @@ func generateTimetable(start, end time.Time, pausePattern []time.Duration, sessi
 
 	if start.IsZero() {
 		return nil, fmt.Errorf("start is zero time")
-	} else if start.After(end) {
+	} else if !end.IsZero() && start.After(end) {
 		return nil, ErrStartAfterEnd{start, end}
 	}
 
