@@ -31,7 +31,7 @@ type timetable struct {
 func generateTimetable(start, end time.Time, pausePattern string, sessions sessionInfo) (*timetable, error) {
 	tt := timetable{}
 
-	pauseDurations := []time.Duration{}
+	pauseDurations := make([]time.Duration, 0)
 	for _, pps := range strings.Split(pausePattern, "-") {
 		ppi, err := time.ParseDuration(pps)
 		if err != nil {
