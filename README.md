@@ -31,7 +31,7 @@ Options:
 For example, you want to work 6 hours with 25 minutes sessions and 5 minutes breaks. You can use the following command:
 
 ```bash
-ptt --duration 4h --session-length 25 --pause-pattern 5
+ptt --duration 4h --session-length 25m --pause-pattern 5m
 
 # Output (assuming the current time is 8:00):
 (1)     08:00   08:25   25m0s
