@@ -20,11 +20,23 @@ type sessionInfo struct {
 type session struct {
 	id         int
 	start, end time.Time
+	pause      time.Duration
+}
+
+func (s session) String() string {
+	return fmt.Sprintf("%d: %v - %v", s.id, s.start.Format(time.Kitchen), s.end.Format(time.Kitchen))
 }
 
 type timetable struct {
-	sessions            []session
-	totalWork, totalDur time.Duration
+	sessions []session
+}
+
+func (t *timetable) String() string {
+	s := ""
+	for _, v := range t.sessions {
+		s += fmt.Sprintf("%v\n", v)
+	}
+	return s
 }
 
 type ErrStartAfterEnd struct {
@@ -77,17 +89,20 @@ func generateTimetable(start, end time.Time, pausePattern []time.Duration, sessi
 			sessionEnd = sessionStart.Add(time.Minute * time.Duration(opt))
 		}
 
-		tt.totalWork += sessionEnd.Sub(sessionStart)
-		tt.sessions = append(tt.sessions, session{i + 1, sessionStart, sessionEnd})
+		pause := pausePattern[i%len(pausePattern)]
 
-		sessionStart = sessionEnd.Add(pausePattern[i%len(pausePattern)])
+		s := session{i + 1, sessionStart, sessionEnd, pause}
+		tt.sessions = append(tt.sessions, s)
+
+		sessionStart = sessionEnd.Add(pause)
 	}
 
 	if len(tt.sessions) == 0 {
 		return nil, errors.New("no sessions generated")
 	}
 
-	tt.totalDur = tt.sessions[len(tt.sessions)-1].end.Sub(start)
+	// remove last pause to not exceed the cumulative time, as you probably are not going to do a pause after the last session
+	tt.sessions[len(tt.sessions)-1].pause = 0
 
 	return &tt, nil
 }

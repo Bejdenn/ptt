@@ -3,7 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 	"strings"
+	"text/tabwriter"
 	"time"
 )
 
@@ -74,13 +76,19 @@ func main() {
 		return
 	}
 
+	const padding = 3
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, padding, ' ', 0)
+	fmt.Fprintln(w, "ID\tStart\tEnd\tDuration\tPause\tCumulated Work\tCumulated Time")
+
+	cumulatedWork := time.Duration(0)
+	cumulatedTime := time.Duration(0)
 	for _, u := range tt.sessions {
-		fmt.Printf("(%d)\t%s\t%s\t%s\n", u.id, u.start.Format(time.TimeOnly), u.end.Format(time.TimeOnly), u.end.Sub(u.start).String())
+		cumulatedWork += u.end.Sub(u.start)
+		cumulatedTime += u.end.Sub(u.start) + u.pause
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t\n", u.id, u.start.Format(time.TimeOnly), u.end.Format(time.TimeOnly), u.end.Sub(u.start), u.pause, cumulatedWork, cumulatedTime)
 	}
 
-	fmt.Println("")
-	fmt.Printf("Total duration of session: %s\n", tt.totalDur.String())
-	fmt.Printf("Total work time: %s\n", tt.totalWork.String())
+	w.Flush()
 }
 
 // normalize normalizes a time. Normalization here means to reduce it to its hours and minutes, leaving the rest as
