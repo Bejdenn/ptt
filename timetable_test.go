@@ -32,16 +32,19 @@ func Test_generateTimetable(t *testing.T) {
 						id:    1,
 						start: time.Date(2020, 1, 1, 10, 0, 0, 0, time.UTC),
 						end:   time.Date(2020, 1, 1, 10, 30, 0, 0, time.UTC),
+						pause: time.Duration(10) * time.Minute,
 					},
 					{
 						id:    2,
 						start: time.Date(2020, 1, 1, 10, 40, 0, 0, time.UTC),
 						end:   time.Date(2020, 1, 1, 11, 10, 0, 0, time.UTC),
+						pause: time.Duration(10) * time.Minute,
 					},
 					{
 						id:    3,
 						start: time.Date(2020, 1, 1, 11, 20, 0, 0, time.UTC),
 						end:   time.Date(2020, 1, 1, 11, 50, 0, 0, time.UTC),
+						pause: time.Duration(10) * time.Minute,
 					},
 					{
 						id:    4,
@@ -49,8 +52,6 @@ func Test_generateTimetable(t *testing.T) {
 						end:   time.Date(2020, 1, 1, 12, 30, 0, 0, time.UTC),
 					},
 				},
-				totalWork: time.Duration(120) * time.Minute,
-				totalDur:  time.Duration(150) * time.Minute,
 			},
 		}, {
 			name: "different pause times",
@@ -65,16 +66,19 @@ func Test_generateTimetable(t *testing.T) {
 						id:    1,
 						start: time.Date(2020, 1, 1, 10, 0, 0, 0, time.UTC),
 						end:   time.Date(2020, 1, 1, 10, 30, 0, 0, time.UTC),
+						pause: time.Duration(10) * time.Minute,
 					},
 					{
 						id:    2,
 						start: time.Date(2020, 1, 1, 10, 40, 0, 0, time.UTC),
 						end:   time.Date(2020, 1, 1, 11, 10, 0, 0, time.UTC),
+						pause: time.Duration(5) * time.Minute,
 					},
 					{
 						id:    3,
 						start: time.Date(2020, 1, 1, 11, 15, 0, 0, time.UTC),
 						end:   time.Date(2020, 1, 1, 11, 45, 0, 0, time.UTC),
+						pause: time.Duration(10) * time.Minute,
 					},
 					{
 						id:    4,
@@ -82,8 +86,6 @@ func Test_generateTimetable(t *testing.T) {
 						end:   time.Date(2020, 1, 1, 12, 25, 0, 0, time.UTC),
 					},
 				},
-				totalWork: time.Duration(120) * time.Minute,
-				totalDur:  time.Duration(145) * time.Minute,
 			},
 		}, {
 			name: "only end time",
@@ -99,6 +101,7 @@ func Test_generateTimetable(t *testing.T) {
 						id:    1,
 						start: time.Date(2020, 1, 1, 18, 45, 0, 0, time.UTC),
 						end:   time.Date(2020, 1, 1, 20, 15, 0, 0, time.UTC),
+						pause: time.Duration(10) * time.Minute,
 					},
 					{
 						id:    2,
@@ -106,8 +109,6 @@ func Test_generateTimetable(t *testing.T) {
 						end:   time.Date(2020, 1, 1, 20, 45, 0, 0, time.UTC),
 					},
 				},
-				totalWork: time.Duration(110) * time.Minute,
-				totalDur:  time.Duration(120) * time.Minute,
 			},
 		},
 		{
@@ -123,11 +124,13 @@ func Test_generateTimetable(t *testing.T) {
 						id:    1,
 						start: time.Date(2020, 1, 1, 18, 45, 0, 0, time.UTC),
 						end:   time.Date(2020, 1, 1, 19, 30, 0, 0, time.UTC),
+						pause: time.Duration(10) * time.Minute,
 					},
 					{
 						id:    2,
 						start: time.Date(2020, 1, 1, 19, 40, 0, 0, time.UTC),
 						end:   time.Date(2020, 1, 1, 20, 25, 0, 0, time.UTC),
+						pause: time.Duration(10) * time.Minute,
 					},
 					{
 						id:    3,
@@ -135,8 +138,6 @@ func Test_generateTimetable(t *testing.T) {
 						end:   time.Date(2020, 1, 1, 21, 5, 0, 0, time.UTC),
 					},
 				},
-				totalWork: time.Duration(120) * time.Minute,
-				totalDur:  time.Duration(140) * time.Minute,
 			},
 		},
 	}
