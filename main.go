@@ -78,14 +78,14 @@ func main() {
 
 	const padding = 3
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, padding, ' ', 0)
-	fmt.Fprintln(w, "ID\tStart\tEnd\tDuration\tCumulated Work\tCumulated Time")
+	fmt.Fprintln(w, "ID\tStart\tEnd\tDuration\tPause\tCumulated Work\tCumulated Time")
 
 	cumulatedWork := time.Duration(0)
 	cumulatedTime := time.Duration(0)
 	for _, u := range tt.sessions {
 		cumulatedWork += u.end.Sub(u.start)
 		cumulatedTime += u.end.Sub(u.start) + u.pause
-		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t\n", u.id, u.start.Format(time.TimeOnly), u.end.Format(time.TimeOnly), u.end.Sub(u.start).String(), cumulatedWork.String(), cumulatedTime.String())
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t\n", u.id, u.start.Format(time.TimeOnly), u.end.Format(time.TimeOnly), u.end.Sub(u.start), u.pause, cumulatedWork, cumulatedTime)
 	}
 
 	w.Flush()
