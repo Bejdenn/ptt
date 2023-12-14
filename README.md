@@ -37,11 +37,9 @@ ptt --duration 6h --session-length 90m --pause-pattern 15m
 
 ```
 # Output (assuming the current time is 8:00):
-(1)	08:00:00	09:30:00	1h30m0s
-(2)	09:45:00	11:15:00	1h30m0s
-(3)	11:30:00	13:00:00	1h30m0s
-(4)	13:15:00	14:45:00	1h30m0s
-
-Total duration of session: 6h45m0s
-Total work time: 6h0m0s
+ID   Start      End        Duration   Pause   Cumulated Work   Cumulated Time
+1    08:00:00   09:30:00   1h30m0s    15m0s   1h30m0s          1h45m0s
+2    09:45:00   11:15:00   1h30m0s    15m0s   3h0m0s           3h30m0s
+3    11:30:00   13:00:00   1h30m0s    15m0s   4h30m0s          5h15m0s
+4    13:15:00   14:45:00   1h30m0s    0s      6h0m0s           6h45m0s
 ```
