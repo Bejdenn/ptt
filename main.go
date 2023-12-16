@@ -4,13 +4,15 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime/debug"
 	"strings"
 	"text/tabwriter"
 	"time"
 )
 
 const (
-	valueDelimiter = " "
+	valueDelimiter    = " "
+	TimeOnlyNoSeconds = "15:04"
 )
 
 type durationArrayFlag []time.Duration
@@ -42,7 +44,7 @@ func (t *timeFlag) Set(s string) error {
 		return nil
 	}
 
-	parsed, err := time.Parse("15:04", s)
+	parsed, err := time.Parse(TimeOnlyNoSeconds, s)
 	if err != nil {
 		return fmt.Errorf("could not parse time: %v", err)
 	}
@@ -63,7 +65,19 @@ func main() {
 	var endFlag timeFlag
 	flag.Var(&endFlag, "end", "Maximum end time of the time table. Ignored if not defined.")
 
+	var versionFlag bool
+	flag.BoolVar(&versionFlag, "version", false, "Print the version and exit.")
+
 	flag.Parse()
+
+	if versionFlag {
+		if buildInfo, ok := debug.ReadBuildInfo(); ok {
+			fmt.Println(buildInfo.Main.Version)
+			return
+		}
+		fmt.Println("(unknown)")
+		return
+	}
 
 	if (time.Time)(startFlag).IsZero() {
 		startFlag = timeFlag(time.Now())
@@ -85,7 +99,7 @@ func main() {
 	for _, u := range tt.sessions {
 		cumulatedWork += u.end.Sub(u.start)
 		cumulatedTime += u.end.Sub(u.start) + u.pause
-		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t\n", u.id, u.start.Format(time.TimeOnly), u.end.Format(time.TimeOnly), u.end.Sub(u.start), u.pause, cumulatedWork, cumulatedTime)
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t\n", u.id, u.start.Format(TimeOnlyNoSeconds), u.end.Format(TimeOnlyNoSeconds), u.end.Sub(u.start), u.pause, cumulatedWork, cumulatedTime)
 	}
 
 	w.Flush()
