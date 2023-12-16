@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime/debug"
 	"strings"
 	"text/tabwriter"
 	"time"
@@ -64,7 +65,19 @@ func main() {
 	var endFlag timeFlag
 	flag.Var(&endFlag, "end", "Maximum end time of the time table. Ignored if not defined.")
 
+	var versionFlag bool
+	flag.BoolVar(&versionFlag, "version", false, "Print the version and exit.")
+
 	flag.Parse()
+
+	if versionFlag {
+		if buildInfo, ok := debug.ReadBuildInfo(); ok {
+			fmt.Println(buildInfo.Main.Version)
+			return
+		}
+		fmt.Println("(unknown)")
+		return
+	}
 
 	if (time.Time)(startFlag).IsZero() {
 		startFlag = timeFlag(time.Now())
