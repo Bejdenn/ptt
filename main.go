@@ -10,21 +10,16 @@ import (
 )
 
 const (
-	valueDelimiter    = " "
 	TimeOnlyNoSeconds = "15:04"
 )
 
 type timeFlag time.Time
 
 func (t *timeFlag) String() string {
-	return "time"
+	return fmt.Sprint(*t)
 }
 
 func (t *timeFlag) Set(s string) error {
-	if s == "" {
-		return nil
-	}
-
 	parsed, err := time.Parse(TimeOnlyNoSeconds, s)
 	if err != nil {
 		return fmt.Errorf("could not parse time: %v", err)
@@ -34,21 +29,21 @@ func (t *timeFlag) Set(s string) error {
 }
 
 func main() {
-	durationFlag := flag.Duration("duration", time.Duration(0), "Set the working duration that should be covered by pomodoro sessions.")
-	sessionLengthFlag := flag.Duration("session-length", 90*time.Minute, "Set the length of a single pomodoro session.")
+	var (
+		durationFlag      time.Duration
+		sessionLengthFlag time.Duration
+		pauseFlag         time.Duration
+		startFlag         timeFlag
+		endFlag           timeFlag
+		versionFlag       bool
+	)
 
-	var pauseFlag time.Duration
+	flag.DurationVar(&durationFlag, "duration", time.Duration(0), "Set the working duration that should be covered by pomodoro sessions.")
+	flag.DurationVar(&sessionLengthFlag, "session-length", 90*time.Minute, "Set the length of a single pomodoro session.")
 	flag.DurationVar(&pauseFlag, "pause", 15*time.Minute, "Set the duration for the pauses between pomodoro sessions.")
-
-	var startFlag timeFlag
 	flag.Var(&startFlag, "start", "Start time of the time table.")
-
-	var endFlag timeFlag
 	flag.Var(&endFlag, "end", "Maximum end time of the time table. Ignored if not defined.")
-
-	var versionFlag bool
 	flag.BoolVar(&versionFlag, "version", false, "Print the version and exit.")
-
 	flag.Parse()
 
 	if versionFlag {
@@ -65,7 +60,7 @@ func main() {
 	}
 	startFlag = timeFlag(normalize(time.Time(startFlag)))
 
-	tt, err := generateTimetable((time.Time)(startFlag), (time.Time)(endFlag), pauseFlag, sessionInfo{*durationFlag, *sessionLengthFlag})
+	tt, err := generateTimetable((time.Time)(startFlag), (time.Time)(endFlag), pauseFlag, sessionInfo{durationFlag, sessionLengthFlag})
 	if err != nil {
 		fmt.Printf("could not generate timetable: %v\n", err)
 		return
