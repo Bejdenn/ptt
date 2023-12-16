@@ -34,7 +34,7 @@ type timetable struct {
 func (t *timetable) String() string {
 	s := ""
 	for _, v := range t.sessions {
-		s += fmt.Sprintf("%v\n", v)
+		s += fmt.Sprintf("%v, ", v)
 	}
 	return s
 }
@@ -48,7 +48,7 @@ func (e ErrStartAfterEnd) Error() string {
 	return fmt.Sprintf("start (%v) is after end (%v)", e.start.Format(time.UnixDate), e.end.Format(time.UnixDate))
 }
 
-func generateTimetable(start, end time.Time, pausePattern []time.Duration, sessions sessionInfo) (*timetable, error) {
+func generateTimetable(start, end time.Time, pause time.Duration, sessions sessionInfo) (*timetable, error) {
 	tt := timetable{}
 
 	if start.IsZero() {
@@ -65,7 +65,7 @@ func generateTimetable(start, end time.Time, pausePattern []time.Duration, sessi
 	if sessions.duration != time.Duration(0) {
 		endTemp := start.Add(sessions.duration)
 		for i := 0; i < int(math.Ceil(sessions.duration.Minutes()/sessions.sessionLength.Minutes())-1); i++ {
-			endTemp = endTemp.Add(pausePattern[i%len(pausePattern)])
+			endTemp = endTemp.Add(pause)
 		}
 
 		if end.IsZero() || end.After(endTemp) {
@@ -88,8 +88,6 @@ func generateTimetable(start, end time.Time, pausePattern []time.Duration, sessi
 
 			sessionEnd = sessionStart.Add(time.Minute * time.Duration(opt))
 		}
-
-		pause := pausePattern[i%len(pausePattern)]
 
 		s := session{i + 1, sessionStart, sessionEnd, pause}
 		tt.sessions = append(tt.sessions, s)

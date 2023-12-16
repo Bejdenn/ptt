@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"runtime/debug"
-	"strings"
 	"text/tabwriter"
 	"time"
 )
@@ -14,24 +13,6 @@ const (
 	valueDelimiter    = " "
 	TimeOnlyNoSeconds = "15:04"
 )
-
-type durationArrayFlag []time.Duration
-
-func (d *durationArrayFlag) String() string {
-	return "arrayFlag"
-}
-
-func (d *durationArrayFlag) Set(s string) error {
-	for _, v := range strings.Split(s, valueDelimiter) {
-		item, err := time.ParseDuration(v)
-		if err != nil {
-			return fmt.Errorf("could not parse duration array: %v", err)
-		}
-		*d = append(*d, item)
-	}
-
-	return nil
-}
 
 type timeFlag time.Time
 
@@ -56,8 +37,8 @@ func main() {
 	durationFlag := flag.Duration("duration", time.Duration(0), "Set the working duration that should be covered by pomodoro sessions.")
 	sessionLengthFlag := flag.Duration("session-length", 90*time.Minute, "Set the length of a single pomodoro session.")
 
-	var pausePatternFlag durationArrayFlag
-	flag.Var(&pausePatternFlag, "pause-pattern", "Set the pause pattern for the pauses between pomodoro sessions. Will be repeated if it has less elements as --duration defines.")
+	var pauseFlag time.Duration
+	flag.DurationVar(&pauseFlag, "pause", 15*time.Minute, "Set the duration for the pauses between pomodoro sessions.")
 
 	var startFlag timeFlag
 	flag.Var(&startFlag, "start", "Start time of the time table.")
@@ -84,7 +65,7 @@ func main() {
 	}
 	startFlag = timeFlag(normalize(time.Time(startFlag)))
 
-	tt, err := generateTimetable((time.Time)(startFlag), (time.Time)(endFlag), pausePatternFlag, sessionInfo{*durationFlag, *sessionLengthFlag})
+	tt, err := generateTimetable((time.Time)(startFlag), (time.Time)(endFlag), pauseFlag, sessionInfo{*durationFlag, *sessionLengthFlag})
 	if err != nil {
 		fmt.Printf("could not generate timetable: %v\n", err)
 		return

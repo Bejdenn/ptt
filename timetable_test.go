@@ -8,10 +8,10 @@ import (
 
 func Test_generateTimetable(t *testing.T) {
 	type args struct {
-		start        time.Time
-		end          time.Time
-		pausePattern []time.Duration
-		sessions     sessionInfo
+		start    time.Time
+		end      time.Time
+		pause    time.Duration
+		sessions sessionInfo
 	}
 	tests := []struct {
 		name    string
@@ -22,9 +22,9 @@ func Test_generateTimetable(t *testing.T) {
 		{
 			name: "simple",
 			args: args{
-				start:        time.Date(2020, 1, 1, 10, 0, 0, 0, time.UTC),
-				pausePattern: []time.Duration{10 * time.Minute},
-				sessions:     sessionInfo{duration: time.Duration(2) * time.Hour, sessionLength: time.Duration(30) * time.Minute},
+				start:    time.Date(2020, 1, 1, 10, 0, 0, 0, time.UTC),
+				pause:    10 * time.Minute,
+				sessions: sessionInfo{duration: time.Duration(2) * time.Hour, sessionLength: time.Duration(30) * time.Minute},
 			},
 			want: &timetable{
 				sessions: []session{
@@ -56,9 +56,9 @@ func Test_generateTimetable(t *testing.T) {
 		}, {
 			name: "different pause times",
 			args: args{
-				start:        time.Date(2020, 1, 1, 10, 0, 0, 0, time.UTC),
-				pausePattern: []time.Duration{10 * time.Minute, 5 * time.Minute},
-				sessions:     sessionInfo{duration: time.Duration(2) * time.Hour, sessionLength: time.Duration(30) * time.Minute},
+				start:    time.Date(2020, 1, 1, 10, 0, 0, 0, time.UTC),
+				pause:    10 * time.Minute,
+				sessions: sessionInfo{duration: time.Duration(2) * time.Hour, sessionLength: time.Duration(30) * time.Minute},
 			},
 			want: &timetable{
 				sessions: []session{
@@ -72,28 +72,28 @@ func Test_generateTimetable(t *testing.T) {
 						id:    2,
 						start: time.Date(2020, 1, 1, 10, 40, 0, 0, time.UTC),
 						end:   time.Date(2020, 1, 1, 11, 10, 0, 0, time.UTC),
-						pause: time.Duration(5) * time.Minute,
+						pause: time.Duration(10) * time.Minute,
 					},
 					{
 						id:    3,
-						start: time.Date(2020, 1, 1, 11, 15, 0, 0, time.UTC),
-						end:   time.Date(2020, 1, 1, 11, 45, 0, 0, time.UTC),
+						start: time.Date(2020, 1, 1, 11, 20, 0, 0, time.UTC),
+						end:   time.Date(2020, 1, 1, 11, 50, 0, 0, time.UTC),
 						pause: time.Duration(10) * time.Minute,
 					},
 					{
 						id:    4,
-						start: time.Date(2020, 1, 1, 11, 55, 0, 0, time.UTC),
-						end:   time.Date(2020, 1, 1, 12, 25, 0, 0, time.UTC),
+						start: time.Date(2020, 1, 1, 12, 00, 0, 0, time.UTC),
+						end:   time.Date(2020, 1, 1, 12, 30, 0, 0, time.UTC),
 					},
 				},
 			},
 		}, {
 			name: "only end time",
 			args: args{
-				start:        time.Date(2020, 1, 1, 18, 45, 0, 0, time.UTC),
-				end:          time.Date(2020, 1, 1, 20, 45, 0, 0, time.UTC),
-				pausePattern: []time.Duration{10 * time.Minute},
-				sessions:     sessionInfo{duration: time.Duration(0), sessionLength: time.Duration(90) * time.Minute},
+				start:    time.Date(2020, 1, 1, 18, 45, 0, 0, time.UTC),
+				end:      time.Date(2020, 1, 1, 20, 45, 0, 0, time.UTC),
+				pause:    10 * time.Minute,
+				sessions: sessionInfo{duration: time.Duration(0), sessionLength: time.Duration(90) * time.Minute},
 			},
 			want: &timetable{
 				sessions: []session{
@@ -114,9 +114,9 @@ func Test_generateTimetable(t *testing.T) {
 		{
 			name: "session length not multiple of duration",
 			args: args{
-				start:        time.Date(2020, 1, 1, 18, 45, 0, 0, time.UTC),
-				pausePattern: []time.Duration{10 * time.Minute},
-				sessions:     sessionInfo{duration: time.Duration(2) * time.Hour, sessionLength: time.Duration(45) * time.Minute},
+				start:    time.Date(2020, 1, 1, 18, 45, 0, 0, time.UTC),
+				pause:    10 * time.Minute,
+				sessions: sessionInfo{duration: time.Duration(2) * time.Hour, sessionLength: time.Duration(45) * time.Minute},
 			},
 			want: &timetable{
 				sessions: []session{
@@ -143,7 +143,7 @@ func Test_generateTimetable(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := generateTimetable(tt.args.start, tt.args.end, tt.args.pausePattern, tt.args.sessions)
+			got, err := generateTimetable(tt.args.start, tt.args.end, tt.args.pause, tt.args.sessions)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("generateTimetable() error = %v, wantErr %v", err, tt.wantErr)
 				return
