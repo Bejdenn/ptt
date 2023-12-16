@@ -73,9 +73,9 @@ func main() {
 	cumulatedWork := time.Duration(0)
 	cumulatedTime := time.Duration(0)
 	for _, u := range tt.sessions {
-		cumulatedWork += u.end.Sub(u.start)
-		cumulatedTime += u.end.Sub(u.start) + u.pause
-		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t\n", u.id, u.start.Format(TimeOnlyNoSeconds), u.end.Format(TimeOnlyNoSeconds), u.end.Sub(u.start), u.pause, cumulatedWork, cumulatedTime)
+		cumulatedWork += u.Duration()
+		cumulatedTime += u.Duration() + u.pause
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t\n", u.id, u.start.Format(TimeOnlyNoSeconds), u.end.Format(TimeOnlyNoSeconds), u.Duration(), u.pause, cumulatedWork, cumulatedTime)
 	}
 
 	w.Flush()

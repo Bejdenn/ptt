@@ -23,6 +23,10 @@ type session struct {
 	pause      time.Duration
 }
 
+func (s session) Duration() time.Duration {
+	return s.end.Sub(s.start)
+}
+
 func (s session) String() string {
 	return fmt.Sprintf("%d: %v - %v", s.id, s.start.Format(time.Kitchen), s.end.Format(time.Kitchen))
 }
