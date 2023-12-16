@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	valueDelimiter = " "
+	valueDelimiter    = " "
+	TimeOnlyNoSeconds = "15:04"
 )
 
 type durationArrayFlag []time.Duration
@@ -42,7 +43,7 @@ func (t *timeFlag) Set(s string) error {
 		return nil
 	}
 
-	parsed, err := time.Parse("15:04", s)
+	parsed, err := time.Parse(TimeOnlyNoSeconds, s)
 	if err != nil {
 		return fmt.Errorf("could not parse time: %v", err)
 	}
@@ -85,7 +86,7 @@ func main() {
 	for _, u := range tt.sessions {
 		cumulatedWork += u.end.Sub(u.start)
 		cumulatedTime += u.end.Sub(u.start) + u.pause
-		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t\n", u.id, u.start.Format(time.TimeOnly), u.end.Format(time.TimeOnly), u.end.Sub(u.start), u.pause, cumulatedWork, cumulatedTime)
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t\n", u.id, u.start.Format(TimeOnlyNoSeconds), u.end.Format(TimeOnlyNoSeconds), u.end.Sub(u.start), u.pause, cumulatedWork, cumulatedTime)
 	}
 
 	w.Flush()
