@@ -7,6 +7,8 @@ import (
 	"runtime/debug"
 	"text/tabwriter"
 	"time"
+
+	"github.com/Bejdenn/ptt/internal/timetable"
 )
 
 const (
@@ -60,7 +62,7 @@ func main() {
 	}
 	startFlag = timeFlag(normalize(time.Time(startFlag)))
 
-	tt, err := generateTimetable((time.Time)(startFlag), (time.Time)(endFlag), pauseFlag, sessionInfo{durationFlag, sessionLengthFlag})
+	tt, err := timetable.GenerateTimetable((time.Time)(startFlag), (time.Time)(endFlag), pauseFlag, timetable.SessionInfo{Duration: durationFlag, SessionLength: sessionLengthFlag})
 	if err != nil {
 		fmt.Printf("could not generate timetable: %v\n", err)
 		return
@@ -72,10 +74,10 @@ func main() {
 
 	cumulatedWork := time.Duration(0)
 	cumulatedTime := time.Duration(0)
-	for _, u := range tt.sessions {
+	for _, u := range tt.Sessions {
 		cumulatedWork += u.Duration()
-		cumulatedTime += u.Duration() + u.pause
-		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t\n", u.id, u.start.Format(TimeOnlyNoSeconds), u.end.Format(TimeOnlyNoSeconds), u.Duration(), u.pause, cumulatedWork, cumulatedTime)
+		cumulatedTime += u.Duration() + u.Pause
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t\n", u.ID, u.Start.Format(TimeOnlyNoSeconds), u.End.Format(TimeOnlyNoSeconds), u.Duration(), u.Pause, cumulatedWork, cumulatedTime)
 	}
 
 	w.Flush()

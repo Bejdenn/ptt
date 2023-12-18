@@ -10,7 +10,7 @@ Currently, the installation is only possible from source. To install it, you nee
 installed.
 
 ```bash
-go install
+go install github.com/Bejdenn/ptt/cmd/...@latest
 ```
 
 This will install the binary in your `$GOPATH/bin` directory. Make sure that this directory is in your `$PATH`.

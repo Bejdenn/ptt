@@ -1,4 +1,4 @@
-package main
+package timetable
 
 import (
 	"errors"
@@ -12,32 +12,32 @@ var (
 	threshold = step
 )
 
-type sessionInfo struct {
-	duration      time.Duration
-	sessionLength time.Duration
+type SessionInfo struct {
+	Duration      time.Duration
+	SessionLength time.Duration
 }
 
-type session struct {
-	id         int
-	start, end time.Time
-	pause      time.Duration
+type Session struct {
+	ID         int
+	Start, End time.Time
+	Pause      time.Duration
 }
 
-func (s session) Duration() time.Duration {
-	return s.end.Sub(s.start)
+func (s Session) Duration() time.Duration {
+	return s.End.Sub(s.Start)
 }
 
-func (s session) String() string {
-	return fmt.Sprintf("%d: %v - %v", s.id, s.start.Format(time.Kitchen), s.end.Format(time.Kitchen))
+func (s Session) String() string {
+	return fmt.Sprintf("%d: %v - %v", s.ID, s.Start.Format(time.Kitchen), s.End.Format(time.Kitchen))
 }
 
-type timetable struct {
-	sessions []session
+type Timetable struct {
+	Sessions []Session
 }
 
-func (t *timetable) String() string {
+func (t *Timetable) String() string {
 	s := ""
-	for _, v := range t.sessions {
+	for _, v := range t.Sessions {
 		s += fmt.Sprintf("%v, ", v)
 	}
 	return s
@@ -52,8 +52,8 @@ func (e ErrStartAfterEnd) Error() string {
 	return fmt.Sprintf("start (%v) is after end (%v)", e.start.Format(time.UnixDate), e.end.Format(time.UnixDate))
 }
 
-func generateTimetable(start, end time.Time, pause time.Duration, sessions sessionInfo) (*timetable, error) {
-	tt := timetable{}
+func GenerateTimetable(start, end time.Time, pause time.Duration, sessions SessionInfo) (*Timetable, error) {
+	tt := Timetable{}
 
 	if start.IsZero() {
 		return nil, fmt.Errorf("start is zero time")
@@ -61,14 +61,14 @@ func generateTimetable(start, end time.Time, pause time.Duration, sessions sessi
 		return nil, ErrStartAfterEnd{start, end}
 	}
 
-	if sessions.duration == time.Duration(0) && end.IsZero() {
+	if sessions.Duration == time.Duration(0) && end.IsZero() {
 		// neither duration nor end time given, so default to 6 hours of work
-		sessions.duration = 6 * time.Hour
+		sessions.Duration = 6 * time.Hour
 	}
 
-	if sessions.duration != time.Duration(0) {
-		endTemp := start.Add(sessions.duration)
-		for i := 0; i < int(math.Ceil(sessions.duration.Minutes()/sessions.sessionLength.Minutes())-1); i++ {
+	if sessions.Duration != time.Duration(0) {
+		endTemp := start.Add(sessions.Duration)
+		for i := 0; i < int(math.Ceil(sessions.Duration.Minutes()/sessions.SessionLength.Minutes())-1); i++ {
 			endTemp = endTemp.Add(pause)
 		}
 
@@ -81,7 +81,7 @@ func generateTimetable(start, end time.Time, pause time.Duration, sessions sessi
 	var sessionEnd time.Time
 
 	for i := 0; ; i++ {
-		sessionEnd = sessionStart.Add(sessions.sessionLength)
+		sessionEnd = sessionStart.Add(sessions.SessionLength)
 
 		if !end.IsZero() && sessionEnd.After(end) {
 			// optimize rest time to end by filling up the session with a unit that is a fraction of the given unit length
@@ -93,18 +93,18 @@ func generateTimetable(start, end time.Time, pause time.Duration, sessions sessi
 			sessionEnd = sessionStart.Add(time.Minute * time.Duration(opt))
 		}
 
-		s := session{i + 1, sessionStart, sessionEnd, pause}
-		tt.sessions = append(tt.sessions, s)
+		s := Session{i + 1, sessionStart, sessionEnd, pause}
+		tt.Sessions = append(tt.Sessions, s)
 
 		sessionStart = sessionEnd.Add(pause)
 	}
 
-	if len(tt.sessions) == 0 {
+	if len(tt.Sessions) == 0 {
 		return nil, errors.New("no sessions generated")
 	}
 
 	// remove last pause to not exceed the cumulative time, as you probably are not going to do a pause after the last session
-	tt.sessions[len(tt.sessions)-1].pause = 0
+	tt.Sessions[len(tt.Sessions)-1].Pause = 0
 
 	return &tt, nil
 }
