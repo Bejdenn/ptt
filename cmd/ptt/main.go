@@ -68,7 +68,7 @@ func main() {
 		return
 	}
 
-	tt, err := timetable.GenerateTimetable(c, pauseFlag, sessionLengthFlag)
+	sessions, err := timetable.Generate(c, pauseFlag, sessionLengthFlag)
 	if err != nil {
 		fmt.Printf("could not generate timetable: %v\n", err)
 		return
@@ -80,7 +80,7 @@ func main() {
 
 	cumulatedWork := time.Duration(0)
 	cumulatedTime := time.Duration(0)
-	for _, u := range tt.Sessions {
+	for _, u := range sessions {
 		cumulatedWork += u.Duration()
 		cumulatedTime += u.Duration() + u.Pause
 		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t\n", u.ID, u.TimeRange.Start.Format(TimeOnlyNoSeconds), u.TimeRange.End.Format(TimeOnlyNoSeconds), u.Duration(), u.Pause, cumulatedWork, cumulatedTime)

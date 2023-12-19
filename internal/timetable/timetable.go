@@ -89,20 +89,8 @@ func newTimeRangeByEnd(start, end time.Time, pause, sessionLength time.Duration)
 	return TimeRange{start, end}, nil
 }
 
-type Timetable struct {
-	Sessions []Session
-}
-
-func (t *Timetable) String() string {
-	s := ""
-	for _, v := range t.Sessions {
-		s += fmt.Sprintf("%v, ", v)
-	}
-	return s
-}
-
-func GenerateTimetable(tr TimeRange, pause, sessionLength time.Duration) (*Timetable, error) {
-	tt := Timetable{}
+func Generate(tr TimeRange, pause, sessionLength time.Duration) ([]Session, error) {
+	sessions := []Session{}
 
 	sessionStart := tr.Start
 	var sessionEnd time.Time
@@ -121,17 +109,17 @@ func GenerateTimetable(tr TimeRange, pause, sessionLength time.Duration) (*Timet
 		}
 
 		s := Session{i + 1, TimeRange{sessionStart, sessionEnd}, pause}
-		tt.Sessions = append(tt.Sessions, s)
+		sessions = append(sessions, s)
 
 		sessionStart = sessionEnd.Add(pause)
 	}
 
-	if len(tt.Sessions) == 0 {
+	if len(sessions) == 0 {
 		return nil, fmt.Errorf("no sessions generated")
 	}
 
 	// remove last pause to not exceed the cumulative time, as you probably are not going to do a pause after the last session
-	tt.Sessions[len(tt.Sessions)-1].Pause = 0
+	sessions[len(sessions)-1].Pause = 0
 
-	return &tt, nil
+	return sessions, nil
 }

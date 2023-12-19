@@ -246,7 +246,7 @@ func Test_newTimeRangeByEnd(t *testing.T) {
 	}
 }
 
-func TestGenerateTimetable(t *testing.T) {
+func TestGenerate(t *testing.T) {
 	type args struct {
 		tr            TimeRange
 		pause         time.Duration
@@ -255,7 +255,7 @@ func TestGenerateTimetable(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *Timetable
+		want    []Session
 		wantErr bool
 	}{
 		{
@@ -268,30 +268,28 @@ func TestGenerateTimetable(t *testing.T) {
 				pause:         15 * time.Minute,
 				sessionLength: 90 * time.Minute,
 			},
-			want: &Timetable{
-				Sessions: []Session{
-					{
-						ID: 1,
-						TimeRange: TimeRange{
-							Start: time.Date(2020, 1, 1, 9, 0, 0, 0, time.UTC),
-							End:   time.Date(2020, 1, 1, 10, 30, 0, 0, time.UTC),
-						},
-						Pause: 15 * time.Minute,
+			want: []Session{
+				{
+					ID: 1,
+					TimeRange: TimeRange{
+						Start: time.Date(2020, 1, 1, 9, 0, 0, 0, time.UTC),
+						End:   time.Date(2020, 1, 1, 10, 30, 0, 0, time.UTC),
 					},
-					{
-						ID: 2,
-						TimeRange: TimeRange{
-							Start: time.Date(2020, 1, 1, 10, 45, 0, 0, time.UTC),
-							End:   time.Date(2020, 1, 1, 12, 15, 0, 0, time.UTC),
-						},
-						Pause: 15 * time.Minute,
+					Pause: 15 * time.Minute,
+				},
+				{
+					ID: 2,
+					TimeRange: TimeRange{
+						Start: time.Date(2020, 1, 1, 10, 45, 0, 0, time.UTC),
+						End:   time.Date(2020, 1, 1, 12, 15, 0, 0, time.UTC),
 					},
-					{
-						ID: 3,
-						TimeRange: TimeRange{
-							Start: time.Date(2020, 1, 1, 12, 30, 0, 0, time.UTC),
-							End:   time.Date(2020, 1, 1, 13, 0, 0, 0, time.UTC),
-						},
+					Pause: 15 * time.Minute,
+				},
+				{
+					ID: 3,
+					TimeRange: TimeRange{
+						Start: time.Date(2020, 1, 1, 12, 30, 0, 0, time.UTC),
+						End:   time.Date(2020, 1, 1, 13, 0, 0, 0, time.UTC),
 					},
 				},
 			},
@@ -313,13 +311,13 @@ func TestGenerateTimetable(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GenerateTimetable(tt.args.tr, tt.args.pause, tt.args.sessionLength)
+			got, err := Generate(tt.args.tr, tt.args.pause, tt.args.sessionLength)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GenerateTimetable() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Generate() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GenerateTimetable() = %v, want %v", got, tt.want)
+				t.Errorf("Generate() = %v, want %v", got, tt.want)
 			}
 		})
 	}
