@@ -1,7 +1,6 @@
 package timetable
 
 import (
-	"errors"
 	"fmt"
 	"math"
 	"time"
@@ -18,17 +17,76 @@ type SessionInfo struct {
 }
 
 type Session struct {
-	ID         int
-	Start, End time.Time
-	Pause      time.Duration
+	ID        int
+	TimeRange TimeRange
+	Pause     time.Duration
 }
 
 func (s Session) Duration() time.Duration {
-	return s.End.Sub(s.Start)
+	return s.TimeRange.End.Sub(s.TimeRange.Start)
 }
 
 func (s Session) String() string {
-	return fmt.Sprintf("%d: %v - %v", s.ID, s.Start.Format(time.Kitchen), s.End.Format(time.Kitchen))
+	return fmt.Sprintf("%d: %v - %v", s.ID, s.TimeRange.Start.Format(time.Kitchen), s.TimeRange.End.Format(time.Kitchen))
+}
+
+type TimeRange struct {
+	Start, End time.Time
+}
+
+func NewTimeRange(start, end time.Time, pause, duration, sessionLength time.Duration) (TimeRange, error) {
+	if end.IsZero() {
+		if duration == time.Duration(0) {
+			// neither end nor duration given, so default to 6 hours of work
+			return newTimeRangeByDuration(start, pause, 6*time.Hour, sessionLength)
+		} else {
+			return newTimeRangeByDuration(start, pause, duration, sessionLength)
+		}
+	} else {
+		if duration == time.Duration(0) {
+			return newTimeRangeByEnd(start, end, pause, sessionLength)
+		} else {
+			c1, err := newTimeRangeByDuration(start, pause, duration, sessionLength)
+			if err != nil {
+				return TimeRange{}, err
+			}
+			c2, err := newTimeRangeByEnd(start, end, pause, sessionLength)
+			if err != nil {
+				return TimeRange{}, err
+			}
+			if c1.End.Before(c2.End) {
+				return c1, nil
+			} else {
+				return c2, nil
+			}
+		}
+	}
+}
+
+func newTimeRangeByDuration(start time.Time, pause, duration, sessionLength time.Duration) (TimeRange, error) {
+	if start.IsZero() {
+		return TimeRange{}, fmt.Errorf("start is zero time")
+	} else if sessionLength == time.Duration(0) {
+		return TimeRange{}, fmt.Errorf("session length is zero")
+	}
+
+	pauses := int(math.Ceil(duration.Minutes()/sessionLength.Minutes()) - 1)
+	end := start.Add(duration).Add(time.Minute * time.Duration(int(pause.Minutes())*pauses))
+	return newTimeRangeByEnd(start, end, pause, sessionLength)
+}
+
+func newTimeRangeByEnd(start, end time.Time, pause, sessionLength time.Duration) (TimeRange, error) {
+	if start.IsZero() {
+		return TimeRange{}, fmt.Errorf("start is zero time")
+	} else if end.IsZero() {
+		return TimeRange{}, fmt.Errorf("end is zero time")
+	} else if start.After(end) {
+		return TimeRange{}, fmt.Errorf("start %v is after end %v", start, end)
+	} else if sessionLength == time.Duration(0) {
+		return TimeRange{}, fmt.Errorf("session length is zero")
+	}
+
+	return TimeRange{start, end}, nil
 }
 
 type Timetable struct {
@@ -43,49 +101,18 @@ func (t *Timetable) String() string {
 	return s
 }
 
-type ErrStartAfterEnd struct {
-	start time.Time
-	end   time.Time
-}
-
-func (e ErrStartAfterEnd) Error() string {
-	return fmt.Sprintf("start (%v) is after end (%v)", e.start.Format(time.UnixDate), e.end.Format(time.UnixDate))
-}
-
-func GenerateTimetable(start, end time.Time, pause time.Duration, sessions SessionInfo) (*Timetable, error) {
+func GenerateTimetable(tr TimeRange, pause, sessionLength time.Duration) (*Timetable, error) {
 	tt := Timetable{}
 
-	if start.IsZero() {
-		return nil, fmt.Errorf("start is zero time")
-	} else if !end.IsZero() && start.After(end) {
-		return nil, ErrStartAfterEnd{start, end}
-	}
-
-	if sessions.Duration == time.Duration(0) && end.IsZero() {
-		// neither duration nor end time given, so default to 6 hours of work
-		sessions.Duration = 6 * time.Hour
-	}
-
-	if sessions.Duration != time.Duration(0) {
-		endTemp := start.Add(sessions.Duration)
-		for i := 0; i < int(math.Ceil(sessions.Duration.Minutes()/sessions.SessionLength.Minutes())-1); i++ {
-			endTemp = endTemp.Add(pause)
-		}
-
-		if end.IsZero() || end.After(endTemp) {
-			end = endTemp
-		}
-	}
-
-	sessionStart := start
+	sessionStart := tr.Start
 	var sessionEnd time.Time
 
 	for i := 0; ; i++ {
-		sessionEnd = sessionStart.Add(sessions.SessionLength)
+		sessionEnd = sessionStart.Add(sessionLength)
 
-		if !end.IsZero() && sessionEnd.After(end) {
+		if sessionEnd.After(tr.End) {
 			// optimize rest time to end by filling up the session with a unit that is a fraction of the given unit length
-			opt := int(math.Max(0, end.Sub(sessionStart).Minutes())/float64(step)) * step
+			opt := int(math.Max(0, tr.End.Sub(sessionStart).Minutes())/float64(step)) * step
 			if opt <= threshold {
 				break
 			}
@@ -93,14 +120,14 @@ func GenerateTimetable(start, end time.Time, pause time.Duration, sessions Sessi
 			sessionEnd = sessionStart.Add(time.Minute * time.Duration(opt))
 		}
 
-		s := Session{i + 1, sessionStart, sessionEnd, pause}
+		s := Session{i + 1, TimeRange{sessionStart, sessionEnd}, pause}
 		tt.Sessions = append(tt.Sessions, s)
 
 		sessionStart = sessionEnd.Add(pause)
 	}
 
 	if len(tt.Sessions) == 0 {
-		return nil, errors.New("no sessions generated")
+		return nil, fmt.Errorf("no sessions generated")
 	}
 
 	// remove last pause to not exceed the cumulative time, as you probably are not going to do a pause after the last session

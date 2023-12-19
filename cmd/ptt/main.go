@@ -62,7 +62,13 @@ func main() {
 	}
 	startFlag = timeFlag(normalize(time.Time(startFlag)))
 
-	tt, err := timetable.GenerateTimetable((time.Time)(startFlag), (time.Time)(endFlag), pauseFlag, timetable.SessionInfo{Duration: durationFlag, SessionLength: sessionLengthFlag})
+	c, err := timetable.NewTimeRange((time.Time)(startFlag), (time.Time)(endFlag), pauseFlag, durationFlag, sessionLengthFlag)
+	if err != nil {
+		fmt.Printf("could not create config: %v\n", err)
+		return
+	}
+
+	tt, err := timetable.GenerateTimetable(c, pauseFlag, sessionLengthFlag)
 	if err != nil {
 		fmt.Printf("could not generate timetable: %v\n", err)
 		return
@@ -77,7 +83,7 @@ func main() {
 	for _, u := range tt.Sessions {
 		cumulatedWork += u.Duration()
 		cumulatedTime += u.Duration() + u.Pause
-		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t\n", u.ID, u.Start.Format(TimeOnlyNoSeconds), u.End.Format(TimeOnlyNoSeconds), u.Duration(), u.Pause, cumulatedWork, cumulatedTime)
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t\n", u.ID, u.TimeRange.Start.Format(TimeOnlyNoSeconds), u.TimeRange.End.Format(TimeOnlyNoSeconds), u.Duration(), u.Pause, cumulatedWork, cumulatedTime)
 	}
 
 	w.Flush()
