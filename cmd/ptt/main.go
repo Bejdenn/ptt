@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"runtime/debug"
+	"strings"
 	"text/tabwriter"
 	"time"
 
@@ -14,6 +15,35 @@ import (
 const (
 	TimeOnlyNoSeconds = "15:04"
 )
+
+type excludesMultiFlag []timetable.TimeRange
+
+func (e *excludesMultiFlag) String() string {
+	return fmt.Sprint(*e)
+}
+
+func (e *excludesMultiFlag) Set(s string) error {
+	excludes := strings.Split(s, " ")
+	for _, exclude := range excludes {
+		parts := strings.Split(exclude, "-")
+		if len(parts) != 2 {
+			return fmt.Errorf("could not parse exclude: %s", exclude)
+		}
+
+		start, err := time.Parse(TimeOnlyNoSeconds, parts[0])
+		if err != nil {
+			return fmt.Errorf("could not parse start time: %v", err)
+		}
+
+		end, err := time.Parse(TimeOnlyNoSeconds, parts[1])
+		if err != nil {
+			return fmt.Errorf("could not parse end time: %v", err)
+		}
+
+		*e = append(*e, timetable.TimeRange{Start: start, End: end})
+	}
+	return nil
+}
 
 type timeFlag time.Time
 
@@ -37,6 +67,7 @@ func main() {
 		pauseFlag         time.Duration
 		startFlag         timeFlag
 		endFlag           timeFlag
+		excludesFlag      excludesMultiFlag
 		versionFlag       bool
 	)
 
@@ -45,6 +76,7 @@ func main() {
 	flag.DurationVar(&pauseFlag, "pause", 15*time.Minute, "Set the duration for the pauses between pomodoro sessions.")
 	flag.Var(&startFlag, "start", "Start time of the time table.")
 	flag.Var(&endFlag, "end", "Maximum end time of the time table. Ignored if not defined.")
+	flag.Var(&excludesFlag, "exclude", "Exclude multiple time ranges that should not be covered by pomodoro sessions.")
 	flag.BoolVar(&versionFlag, "version", false, "Print the version and exit.")
 	flag.Parse()
 
@@ -62,13 +94,7 @@ func main() {
 	}
 	startFlag = timeFlag(normalize(time.Time(startFlag)))
 
-	c, err := timetable.NewTimeRange((time.Time)(startFlag), (time.Time)(endFlag), pauseFlag, durationFlag, sessionLengthFlag)
-	if err != nil {
-		fmt.Printf("could not create config: %v\n", err)
-		return
-	}
-
-	sessions, err := timetable.Generate(c, pauseFlag, sessionLengthFlag)
+	sessions, err := timetable.Generate((time.Time)(startFlag), (time.Time)(endFlag), pauseFlag, durationFlag, sessionLengthFlag, excludesFlag)
 	if err != nil {
 		fmt.Printf("could not generate timetable: %v\n", err)
 		return
@@ -81,9 +107,9 @@ func main() {
 	cumulatedWork := time.Duration(0)
 	cumulatedTime := time.Duration(0)
 	for _, u := range sessions {
-		cumulatedWork += u.Duration()
-		cumulatedTime += u.Duration() + u.Pause
-		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t\n", u.ID, u.TimeRange.Start.Format(TimeOnlyNoSeconds), u.TimeRange.End.Format(TimeOnlyNoSeconds), u.Duration(), u.Pause, cumulatedWork, cumulatedTime)
+		cumulatedWork += u.TimeRange.Duration()
+		cumulatedTime += u.TimeRange.Duration() + u.Pause
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t\n", u.ID, u.TimeRange.Start.Format(TimeOnlyNoSeconds), u.TimeRange.End.Format(TimeOnlyNoSeconds), u.TimeRange.Duration(), u.Pause, cumulatedWork, cumulatedTime)
 	}
 
 	w.Flush()

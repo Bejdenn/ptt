@@ -26,7 +26,8 @@ Options:
     --end               Maximum end time of the time table. Ignored if not defined.
     --session-length    Set the length of a single pomodoro session. Default is 90 minutes.
     --duration          Set the working duration that should be covered by pomodoro sessions.
-    --pause     Set the duration for the pauses between pomodoro sessions.
+    --pause             Set the duration for the pauses between pomodoro sessions.
+    --exclude           Exclude one or more time ranges.
 ```
 
 For example, you want to work 6 hours with 90 minutes sessions and 15 minutes breaks. You can use the following command:
