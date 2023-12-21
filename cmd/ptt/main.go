@@ -37,7 +37,7 @@ func (e *excludesMultiFlag) Set(s string) error {
 			return fmt.Errorf("could not parse end time: %v", err)
 		}
 
-		*e = append(*e, timetable.TimeRange{Start: start, End: end})
+		*e = append(*e, timetable.TimeRange{Start: normalize(start), End: normalize(end)})
 	}
 	return nil
 }
@@ -53,7 +53,7 @@ func (t *timeFlag) Set(s string) error {
 	if err != nil {
 		return fmt.Errorf("could not parse time: %v", err)
 	}
-	*t = timeFlag(time.Date(now.Year(), now.Month(), now.Day(), parsed.Hour(), parsed.Minute(), 0, 0, time.UTC))
+	*t = timeFlag(normalize(parsed))
 	return nil
 }
 
@@ -129,4 +129,8 @@ func main() {
 	}
 
 	fmt.Print(sessions)
+}
+
+func normalize(t time.Time) time.Time {
+	return time.Date(now.Year(), now.Month(), now.Day(), t.Hour(), t.Minute(), 0, 0, now.Location())
 }
