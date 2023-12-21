@@ -19,21 +19,24 @@ This will install the binary in your `$GOPATH/bin` directory. Make sure that thi
 
 ```
 Usage:
-    ptt [--start] [--end] [--session-length] [--duration] [--pause]
+    ptt [-s START] [-e END] [-l LENGTH] [-d DURATION] [-p PAUSE] (-x EXCLUDE)...
 
 Options:
-    --start             Start time of the time table. Default is current time.
-    --end               Maximum end time of the time table. Ignored if not defined.
-    --session-length    Set the length of a single pomodoro session. Default is 90 minutes.
-    --duration          Set the working duration that should be covered by pomodoro sessions.
-    --pause             Set the duration for the pauses between pomodoro sessions.
-    --exclude           Exclude one or more time ranges.
+    -s, --start START            Set START as the start time of the time table. Default is current time.
+    -e, --end END                Set END as the end time of the time table. Ignored if not defined.
+    -l, --session-length LENGTH  Set LENGTH as the length of a single pomodoro session. Default is 90 minutes.
+    -d, --duration DURATION      Set DURATION as the working duration that should be covered by pomodoro sessions.
+    -p, --pause PAUSE            Set PAUSE as the pause duration between pomodoro sessions.
+    -x, --exclude EXCLUDE        Exclude EXCLUDE to prevent from being overlapped by a pomodoro session. Can be repeated.
+
+END and DURATION are mutually exclusive. If both are defined, the time table will used that ends earlier.
+The format of the durations and time values can be be set as the Go programming language's parsing format defines it.
 ```
 
 For example, you want to work 6 hours with 90 minutes sessions and 15 minutes breaks. You can use the following command:
 
 ```bash
-ptt --duration 6h --session-length 90m --pause 15m
+ptt -d 6h -l 90m -p 15m
 ```
 
 ```

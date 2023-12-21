@@ -60,6 +60,32 @@ func (t *timeFlag) Set(s string) error {
 	return nil
 }
 
+const (
+	defaultDuration      = time.Duration(0)
+	defaultSessionLength = 90 * time.Minute
+	defaultPause         = 15 * time.Minute
+)
+
+const usage = `Usage:
+    ptt [-s START] [-e END] [-l LENGTH] [-d DURATION] [-p PAUSE] (-x EXCLUDE)...
+
+Options:
+    -s, --start START            Set START as the start time of the time table. Default is current time.
+    -e, --end END                Set END as the end time of the time table. Ignored if not defined.
+    -l, --session-length LENGTH  Set LENGTH as the length of a single pomodoro session. Default is 90 minutes.
+    -d, --duration DURATION      Set DURATION as the working duration that should be covered by pomodoro sessions.
+    -p, --pause PAUSE            Set PAUSE as the pause duration between pomodoro sessions.
+    -x, --exclude EXCLUDE        Exclude EXCLUDE to prevent from being overlapped by a pomodoro session. Can be repeated.
+	
+END and DURATION are mutually exclusive. If both are defined, the time table will used that ends earlier.
+The format of the durations and time values can be be set as the Go programming language's parsing format defines it.`
+
+func init() {
+	flag.Usage = func() {
+		fmt.Fprintln(os.Stderr, usage)
+	}
+}
+
 func main() {
 	var (
 		durationFlag      time.Duration
@@ -71,12 +97,18 @@ func main() {
 		versionFlag       bool
 	)
 
-	flag.DurationVar(&durationFlag, "duration", time.Duration(0), "Set the working duration that should be covered by pomodoro sessions.")
-	flag.DurationVar(&sessionLengthFlag, "session-length", 90*time.Minute, "Set the length of a single pomodoro session.")
-	flag.DurationVar(&pauseFlag, "pause", 15*time.Minute, "Set the duration for the pauses between pomodoro sessions.")
-	flag.Var(&startFlag, "start", "Start time of the time table.")
-	flag.Var(&endFlag, "end", "Maximum end time of the time table. Ignored if not defined.")
-	flag.Var(&excludesFlag, "exclude", "Exclude multiple time ranges that should not be covered by pomodoro sessions.")
+	flag.DurationVar(&durationFlag, "duration", time.Duration(0), "set the working duration")
+	flag.DurationVar(&durationFlag, "d", defaultDuration, "set the working duration (shorthand)")
+	flag.DurationVar(&sessionLengthFlag, "session-length", defaultSessionLength, "set the session length")
+	flag.DurationVar(&sessionLengthFlag, "sl", defaultSessionLength, "set the session length (shorthand)")
+	flag.DurationVar(&pauseFlag, "pause", defaultPause, "set the pause duration")
+	flag.DurationVar(&pauseFlag, "p", defaultPause, "set the pause duration (shorthand)")
+	flag.Var(&startFlag, "start", "set the start time")
+	flag.Var(&startFlag, "s", "set the start time (shorthand)")
+	flag.Var(&endFlag, "end", "set the end time")
+	flag.Var(&endFlag, "e", "set the end time (shorthand)")
+	flag.Var(&excludesFlag, "exclude", "exclude one or several time ranges")
+	flag.Var(&excludesFlag, "ex", "exclude one or several time ranges (shorthand)")
 	flag.BoolVar(&versionFlag, "version", false, "Print the version and exit.")
 	flag.Parse()
 
