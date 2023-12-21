@@ -19,10 +19,6 @@ type Session struct {
 	Pause     time.Duration
 }
 
-func (s Session) String() string {
-	return fmt.Sprintf("%d: %v - %v", s.ID, s.TimeRange.Start.Format(time.Kitchen), s.TimeRange.End.Format(time.Kitchen))
-}
-
 func Generate(start, end time.Time, pause, duration, sessionLength time.Duration, excludes []TimeRange) (SessionSlice, error) {
 	var (
 		sessions []Session
