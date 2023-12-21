@@ -118,11 +118,18 @@ func main() {
 		return
 	}
 
-	if (time.Time)(startFlag).IsZero() {
-		startFlag = timeFlag(now)
+	start, end := (time.Time)(startFlag), (time.Time)(endFlag)
+
+	if start.IsZero() {
+		start = now
 	}
 
-	sessions, err := timetable.Generate((time.Time)(startFlag), (time.Time)(endFlag), pauseFlag, durationFlag, sessionLengthFlag, excludesFlag)
+	// if end is before start, interpret it as being the same time on the next day
+	if !end.IsZero() && end.Before(start) {
+		end = end.AddDate(0, 0, 1)
+	}
+
+	sessions, err := timetable.Generate(start, end, pauseFlag, durationFlag, sessionLengthFlag, excludesFlag)
 	if err != nil {
 		fmt.Printf("cannot generate timetable: %v\n", err)
 		return

@@ -24,7 +24,7 @@ type TimeRange struct {
 }
 
 func newUnboundTimeRange(start time.Time) (TimeRange, error) {
-	return newTimeRange(start, time.Date(start.Year(), start.Month(), start.Day(), 23, 59, 0, 0, start.Location()))
+	return newTimeRange(start, time.Date(start.Year(), start.Month(), start.Day()+1, 23, 59, 0, 0, start.Location()))
 }
 
 func newTimeRange(start, end time.Time) (TimeRange, error) {
