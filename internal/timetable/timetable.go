@@ -1,10 +1,16 @@
 package timetable
 
 import (
+	"bytes"
 	"fmt"
 	"math"
 	"sort"
+	"text/tabwriter"
 	"time"
+)
+
+const (
+	TimeOnlyNoSeconds = "15:04"
 )
 
 type Session struct {
@@ -17,7 +23,7 @@ func (s Session) String() string {
 	return fmt.Sprintf("%d: %v - %v", s.ID, s.TimeRange.Start.Format(time.Kitchen), s.TimeRange.End.Format(time.Kitchen))
 }
 
-func Generate(start, end time.Time, pause, duration, sessionLength time.Duration, excludes []TimeRange) ([]Session, error) {
+func Generate(start, end time.Time, pause, duration, sessionLength time.Duration, excludes []TimeRange) (SessionSlice, error) {
 	var (
 		sessions []Session
 		err      error
@@ -94,6 +100,26 @@ func (s SessionSlice) Less(i, j int) bool {
 
 func (s SessionSlice) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
+}
+
+func (s SessionSlice) String() string {
+	buf := bytes.NewBuffer([]byte{})
+
+	const padding = 3
+	w := tabwriter.NewWriter(buf, 0, 0, padding, ' ', 0)
+	fmt.Fprintln(w, "ID\tStart\tEnd\tDuration\tPause\tCumulated Work\tCumulated Time")
+
+	cumulatedWork := time.Duration(0)
+	cumulatedTime := time.Duration(0)
+	for _, u := range s {
+		cumulatedWork += u.TimeRange.Duration()
+		cumulatedTime += u.TimeRange.Duration() + u.Pause
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t\n", u.ID, u.TimeRange.Start.Format(TimeOnlyNoSeconds), u.TimeRange.End.Format(TimeOnlyNoSeconds), u.TimeRange.Duration(), u.Pause, cumulatedWork, cumulatedTime)
+	}
+
+	w.Flush()
+
+	return buf.String()
 }
 
 func generate(tr TimeRange, pause, sessionLength time.Duration, excludes []TimeRange, duration ...time.Duration) ([]Session, error) {

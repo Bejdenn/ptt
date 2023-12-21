@@ -18,7 +18,7 @@ func TestGenerate(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []Session
+		want    SessionSlice
 		wantErr bool
 	}{
 		{
