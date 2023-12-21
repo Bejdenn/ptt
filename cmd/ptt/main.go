@@ -75,7 +75,7 @@ Options:
     -x, --exclude EXCLUDE        Exclude EXCLUDE to prevent from being overlapped by a pomodoro session. Can be repeated.
 	
 END and DURATION are mutually exclusive. If both are defined, the time table will used that ends earlier.
-The format of the durations and time values can be be set as the Go programming language's parsing format defines it.`
+The format of the durations and time values are the same that the Go programming language uses for its time parsing.`
 
 func init() {
 	flag.Usage = func() {
@@ -97,7 +97,7 @@ func main() {
 	flag.DurationVar(&durationFlag, "duration", time.Duration(0), "set the working duration")
 	flag.DurationVar(&durationFlag, "d", defaultDuration, "set the working duration (shorthand)")
 	flag.DurationVar(&sessionLengthFlag, "session-length", defaultSessionLength, "set the session length")
-	flag.DurationVar(&sessionLengthFlag, "sl", defaultSessionLength, "set the session length (shorthand)")
+	flag.DurationVar(&sessionLengthFlag, "l", defaultSessionLength, "set the session length (shorthand)")
 	flag.DurationVar(&pauseFlag, "pause", defaultPause, "set the pause duration")
 	flag.DurationVar(&pauseFlag, "p", defaultPause, "set the pause duration (shorthand)")
 	flag.Var(&startFlag, "start", "set the start time")
@@ -105,7 +105,7 @@ func main() {
 	flag.Var(&endFlag, "end", "set the end time")
 	flag.Var(&endFlag, "e", "set the end time (shorthand)")
 	flag.Var(&excludesFlag, "exclude", "exclude one or several time ranges")
-	flag.Var(&excludesFlag, "ex", "exclude one or several time ranges (shorthand)")
+	flag.Var(&excludesFlag, "x", "exclude one or several time ranges (shorthand)")
 	flag.BoolVar(&versionFlag, "version", false, "Print the version and exit.")
 	flag.Parse()
 

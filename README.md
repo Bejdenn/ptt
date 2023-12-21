@@ -30,7 +30,7 @@ Options:
     -x, --exclude EXCLUDE        Exclude EXCLUDE to prevent from being overlapped by a pomodoro session. Can be repeated.
 
 END and DURATION are mutually exclusive. If both are defined, the time table will used that ends earlier.
-The format of the durations and time values can be be set as the Go programming language's parsing format defines it.
+The format of the durations and time values are the same that the Go programming language uses for its time parsing.
 ```
 
 For example, you want to work 6 hours with 90 minutes sessions and 15 minutes breaks. You can use the following command:
