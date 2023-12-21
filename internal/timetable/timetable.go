@@ -11,6 +11,7 @@ import (
 
 const (
 	TimeOnlyNoSeconds = "15:04"
+	maxDuration       = 1<<63 - 1 // separate constant because the standard library does not export it
 )
 
 type Session struct {
@@ -121,7 +122,7 @@ func (s SessionSlice) String() string {
 func generate(tr TimeRange, pause, sessionLength time.Duration, excludes []TimeRange, duration ...time.Duration) ([]Session, error) {
 	var d time.Duration
 	if len(duration) < 1 {
-		d = 1<<63 - 1
+		d = maxDuration
 	} else {
 		d = duration[0]
 	}
