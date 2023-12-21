@@ -11,6 +11,8 @@ import (
 	"github.com/Bejdenn/ptt/internal/timetable"
 )
 
+var now = time.Now()
+
 type excludesMultiFlag []timetable.TimeRange
 
 func (e *excludesMultiFlag) String() string {
@@ -51,7 +53,7 @@ func (t *timeFlag) Set(s string) error {
 	if err != nil {
 		return fmt.Errorf("could not parse time: %v", err)
 	}
-	*t = timeFlag(parsed)
+	*t = timeFlag(time.Date(now.Year(), now.Month(), now.Day(), parsed.Hour(), parsed.Minute(), 0, 0, time.UTC))
 	return nil
 }
 
@@ -117,21 +119,14 @@ func main() {
 	}
 
 	if (time.Time)(startFlag).IsZero() {
-		startFlag = timeFlag(time.Now())
+		startFlag = timeFlag(now)
 	}
-	startFlag = timeFlag(normalize(time.Time(startFlag)))
 
 	sessions, err := timetable.Generate((time.Time)(startFlag), (time.Time)(endFlag), pauseFlag, durationFlag, sessionLengthFlag, excludesFlag)
 	if err != nil {
-		fmt.Printf("could not generate timetable: %v\n", err)
+		fmt.Printf("cannot generate timetable: %v\n", err)
 		return
 	}
 
 	fmt.Print(sessions)
-}
-
-// normalize normalizes a time. Normalization here means to reduce it to its hours and minutes, leaving the rest as
-// values of the zero time.
-func normalize(t time.Time) time.Time {
-	return time.Date(0, 1, 1, t.Hour(), t.Minute(), 0, 0, time.UTC)
 }

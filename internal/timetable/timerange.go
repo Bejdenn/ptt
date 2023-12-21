@@ -33,7 +33,7 @@ func newTimeRange(start, end time.Time) (TimeRange, error) {
 	} else if end.IsZero() {
 		return TimeRange{}, fmt.Errorf("end is zero time")
 	} else if start.After(end) {
-		return TimeRange{}, fmt.Errorf("start %v is after end %v", start, end)
+		return TimeRange{}, fmt.Errorf("start (%v) is after end (%v)", start, end)
 	}
 
 	return TimeRange{start, end}, nil
