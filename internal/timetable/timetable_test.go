@@ -47,7 +47,6 @@ func TestGenerate(t *testing.T) {
 						Start: time.Date(2020, 1, 1, 7, 30, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 8, 30, 0, 0, time.UTC),
 					},
-					Pause: 10 * time.Minute,
 				},
 				{
 					ID: 2,
@@ -63,7 +62,6 @@ func TestGenerate(t *testing.T) {
 						Start: time.Date(2020, 1, 1, 11, 55, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 12, 45, 0, 0, time.UTC),
 					},
-					Pause: 10 * time.Minute,
 				},
 				{
 					ID: 4,
@@ -151,7 +149,6 @@ func TestGenerate(t *testing.T) {
 						Start: time.Date(2020, 1, 1, 9, 0, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 10, 0, 0, 0, time.UTC),
 					},
-					Pause: 15 * time.Minute,
 				},
 				{
 					ID: 2,
@@ -159,7 +156,6 @@ func TestGenerate(t *testing.T) {
 						Start: time.Date(2020, 1, 1, 11, 0, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 12, 0, 0, 0, time.UTC),
 					},
-					Pause: 15 * time.Minute,
 				},
 				{
 					ID: 3,
@@ -227,7 +223,6 @@ func TestGenerate(t *testing.T) {
 						Start: time.Date(2020, 1, 1, 14, 2, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 15, 0, 0, 0, time.UTC),
 					},
-					Pause: 10 * time.Minute,
 				},
 				{
 					ID: 2,

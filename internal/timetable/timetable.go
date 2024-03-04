@@ -73,11 +73,6 @@ func Generate(start, end time.Time, pause, duration, sessionLength time.Duration
 
 	sort.Sort(SessionSlice(sessions))
 
-	if len(sessions) > 0 {
-		// remove last pause to not exceed the cumulative time, as you probably are not going to do a pause after the last session
-		sessions[len(sessions)-1].Pause = 0
-	}
-
 	for i := 0; i < len(sessions); i++ {
 		sessions[i].ID = i + 1
 	}
@@ -139,6 +134,11 @@ func generate(tr TimeRange, pause, sessionLength time.Duration, excludes []TimeR
 			sessions = append(sessions, Session{0, t, pause})
 
 			t.Start = t.End.Add(pause)
+		}
+
+		if len(sessions) > 0 {
+			// remove last pause to not exceed the cumulative time, as you probably are not going to do a pause after the last session
+			sessions[len(sessions)-1].Pause = 0
 		}
 	}
 
