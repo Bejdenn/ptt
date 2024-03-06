@@ -121,7 +121,7 @@ func main() {
 	start, end := (time.Time)(startFlag), (time.Time)(endFlag)
 
 	if start.IsZero() {
-		start = now
+		start = normalize(now)
 	}
 
 	// if end is before start, interpret it as being the same time on the next day
