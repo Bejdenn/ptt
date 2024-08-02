@@ -37,11 +37,12 @@ The format of the durations and time values are the same that the Go programming
 				Value:       cli.NewTimestamp(time.Now()),
 			},
 			&cli.TimestampFlag{
-				Name:    "end",
-				Layout:  timetable.TimeOnlyNoSeconds,
-				Aliases: []string{"e"},
-				Usage:   "Set `END` as the end time of the time table. Ignored if not defined.",
-				Value:   cli.NewTimestamp(time.Time{}),
+				Name:        "end",
+				Layout:      timetable.TimeOnlyNoSeconds,
+				Aliases:     []string{"e"},
+				Usage:       "Set `END` as the end time of the time table. Ignored if not defined.",
+				DefaultText: "none",
+				Value:       cli.NewTimestamp(time.Time{}),
 				Action: func(c *cli.Context, end *time.Time) error {
 					if !end.IsZero() && end.Before(*c.Timestamp("start")) {
 						*end = end.AddDate(0, 0, 1)
@@ -56,10 +57,11 @@ The format of the durations and time values are the same that the Go programming
 				Usage:   "Set `LENGTH` as the length of a single pomodoro session.",
 			},
 			&cli.DurationFlag{
-				Name:    "duration",
-				Value:   time.Duration(0),
-				Aliases: []string{"d"},
-				Usage:   "Set `DURATION` as the working duration that should be covered by pomodoro sessions.",
+				Name:        "duration",
+				Value:       time.Duration(0),
+				Aliases:     []string{"d"},
+				DefaultText: "none",
+				Usage:       "Set `DURATION` as the working duration that should be covered by pomodoro sessions.",
 			},
 			&cli.DurationFlag{
 				Name:    "pause",
