@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"strings"
 	"time"
 
+	"github.com/Bejdenn/ptt/internal/timerange"
 	"github.com/Bejdenn/ptt/internal/timetable"
 	"github.com/urfave/cli/v2"
 )
@@ -32,7 +32,7 @@ The format of the durations and time values are the same that the Go programming
 		Flags: []cli.Flag{
 			&cli.TimestampFlag{
 				Name:        "start",
-				Layout:      timetable.TimeOnlyNoSeconds,
+				Layout:      timerange.TimeOnlyNoSeconds,
 				Aliases:     []string{"s"},
 				Usage:       "Set `START` as the start time of the time table.",
 				DefaultText: "current time",
@@ -40,7 +40,7 @@ The format of the durations and time values are the same that the Go programming
 			},
 			&cli.TimestampFlag{
 				Name:        "end",
-				Layout:      timetable.TimeOnlyNoSeconds,
+				Layout:      timerange.TimeOnlyNoSeconds,
 				Aliases:     []string{"e"},
 				Usage:       "Set `END` as the end time of the time table. Ignored if not defined.",
 				DefaultText: "none",
@@ -78,7 +78,7 @@ The format of the durations and time values are the same that the Go programming
 			},
 		},
 		Action: func(c *cli.Context) error {
-			excludes, err := parseTimeRanges(*c.Timestamp("start"), c.StringSlice("exclude"))
+			excludes, err := timerange.Parse(*c.Timestamp("start"), c.StringSlice("exclude"))
 			if err != nil {
 				return fmt.Errorf("cannot parse excludes: %v\n", err)
 			}
@@ -93,31 +93,4 @@ The format of the durations and time values are the same that the Go programming
 		},
 		HideHelpCommand: true,
 	}).Run(os.Args)
-}
-
-func parseTimeRanges(ref time.Time, args []string) ([]timetable.TimeRange, error) {
-	excludes := make([]timetable.TimeRange, 0, len(args))
-	for _, exclude := range args {
-		parts := strings.Split(exclude, "-")
-		if len(parts) != 2 {
-			return nil, fmt.Errorf("exclude did not contain hyphen delimiter: %s", exclude)
-		}
-
-		start, err := time.Parse(timetable.TimeOnlyNoSeconds, parts[0])
-		if err != nil {
-			return nil, fmt.Errorf("could not parse start time: %v", err)
-		}
-
-		end, err := time.Parse(timetable.TimeOnlyNoSeconds, parts[1])
-		if err != nil {
-			return nil, fmt.Errorf("could not parse end time: %v", err)
-		}
-
-		excludes = append(excludes, timetable.TimeRange{Start: normalize(ref, start), End: normalize(ref, end)})
-	}
-	return excludes, nil
-}
-
-func normalize(ref, t time.Time) time.Time {
-	return time.Date(ref.Year(), ref.Month(), ref.Day(), t.Hour(), t.Minute(), 0, 0, ref.Location())
 }

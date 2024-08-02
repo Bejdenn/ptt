@@ -1,4 +1,4 @@
-package timetable
+package timerange
 
 import (
 	"reflect"
@@ -216,7 +216,7 @@ func Test_TimeRange_subMulti(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.tr.subMulti(tt.args.us); !reflect.DeepEqual(got, tt.want) {
+			if got := tt.tr.SubMulti(tt.args.us); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("TimeRange.subMulti() = %v, want %v", got, tt.want)
 			}
 		})
@@ -284,7 +284,7 @@ func Test_newTimeRange(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := newTimeRange(tt.args.start, tt.args.end)
+			got, err := New(tt.args.start, tt.args.end)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("newTimeRange() error = %v, wantErr %v", err, tt.wantErr)
 				return

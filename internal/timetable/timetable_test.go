@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/Bejdenn/ptt/internal/timerange"
 )
 
 func TestGenerate(t *testing.T) {
@@ -13,7 +15,7 @@ func TestGenerate(t *testing.T) {
 		pause         time.Duration
 		duration      time.Duration
 		sessionLength time.Duration
-		excludes      []TimeRange
+		excludes      []timerange.TimeRange
 	}
 	tests := []struct {
 		name    string
@@ -29,7 +31,7 @@ func TestGenerate(t *testing.T) {
 				pause:         10 * time.Minute,
 				duration:      6 * time.Hour,
 				sessionLength: 90 * time.Minute,
-				excludes: []TimeRange{
+				excludes: []timerange.TimeRange{
 					{
 						Start: time.Date(2020, 1, 1, 8, 30, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 10, 15, 0, 0, time.UTC),
@@ -43,14 +45,14 @@ func TestGenerate(t *testing.T) {
 			want: []Session{
 				{
 					ID: 1,
-					TimeRange: TimeRange{
+					TimeRange: timerange.TimeRange{
 						Start: time.Date(2020, 1, 1, 7, 30, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 8, 30, 0, 0, time.UTC),
 					},
 				},
 				{
 					ID: 2,
-					TimeRange: TimeRange{
+					TimeRange: timerange.TimeRange{
 						Start: time.Date(2020, 1, 1, 10, 15, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 11, 45, 0, 0, time.UTC),
 					},
@@ -58,14 +60,14 @@ func TestGenerate(t *testing.T) {
 				},
 				{
 					ID: 3,
-					TimeRange: TimeRange{
+					TimeRange: timerange.TimeRange{
 						Start: time.Date(2020, 1, 1, 11, 55, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 12, 45, 0, 0, time.UTC),
 					},
 				},
 				{
 					ID: 4,
-					TimeRange: TimeRange{
+					TimeRange: timerange.TimeRange{
 						Start: time.Date(2020, 1, 1, 16, 15, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 17, 45, 0, 0, time.UTC),
 					},
@@ -73,7 +75,7 @@ func TestGenerate(t *testing.T) {
 				},
 				{
 					ID: 5,
-					TimeRange: TimeRange{
+					TimeRange: timerange.TimeRange{
 						Start: time.Date(2020, 1, 1, 17, 55, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 19, 5, 0, 0, time.UTC),
 					},
@@ -92,7 +94,7 @@ func TestGenerate(t *testing.T) {
 			want: []Session{
 				{
 					ID: 1,
-					TimeRange: TimeRange{
+					TimeRange: timerange.TimeRange{
 						Start: time.Date(2020, 1, 1, 9, 0, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 10, 30, 0, 0, time.UTC),
 					},
@@ -100,7 +102,7 @@ func TestGenerate(t *testing.T) {
 				},
 				{
 					ID: 2,
-					TimeRange: TimeRange{
+					TimeRange: timerange.TimeRange{
 						Start: time.Date(2020, 1, 1, 10, 45, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 12, 15, 0, 0, time.UTC),
 					},
@@ -108,7 +110,7 @@ func TestGenerate(t *testing.T) {
 				},
 				{
 					ID: 3,
-					TimeRange: TimeRange{
+					TimeRange: timerange.TimeRange{
 						Start: time.Date(2020, 1, 1, 12, 30, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 14, 0, 0, 0, time.UTC),
 					},
@@ -116,7 +118,7 @@ func TestGenerate(t *testing.T) {
 				},
 				{
 					ID: 4,
-					TimeRange: TimeRange{
+					TimeRange: timerange.TimeRange{
 						Start: time.Date(2020, 1, 1, 14, 15, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 14, 30, 0, 0, time.UTC),
 					},
@@ -131,7 +133,7 @@ func TestGenerate(t *testing.T) {
 				end:           time.Date(2020, 1, 1, 14, 30, 0, 0, time.UTC),
 				pause:         15 * time.Minute,
 				sessionLength: 90 * time.Minute,
-				excludes: []TimeRange{
+				excludes: []timerange.TimeRange{
 					{
 						Start: time.Date(2020, 1, 1, 10, 0, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 11, 0, 0, 0, time.UTC),
@@ -145,21 +147,21 @@ func TestGenerate(t *testing.T) {
 			want: []Session{
 				{
 					ID: 1,
-					TimeRange: TimeRange{
+					TimeRange: timerange.TimeRange{
 						Start: time.Date(2020, 1, 1, 9, 0, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 10, 0, 0, 0, time.UTC),
 					},
 				},
 				{
 					ID: 2,
-					TimeRange: TimeRange{
+					TimeRange: timerange.TimeRange{
 						Start: time.Date(2020, 1, 1, 11, 0, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 12, 0, 0, 0, time.UTC),
 					},
 				},
 				{
 					ID: 3,
-					TimeRange: TimeRange{
+					TimeRange: timerange.TimeRange{
 						Start: time.Date(2020, 1, 1, 13, 0, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 14, 30, 0, 0, time.UTC),
 					},
@@ -178,7 +180,7 @@ func TestGenerate(t *testing.T) {
 			want: []Session{
 				{
 					ID: 1,
-					TimeRange: TimeRange{
+					TimeRange: timerange.TimeRange{
 						Start: time.Date(2020, 1, 1, 9, 0, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 10, 30, 0, 0, time.UTC),
 					},
@@ -186,7 +188,7 @@ func TestGenerate(t *testing.T) {
 				},
 				{
 					ID: 2,
-					TimeRange: TimeRange{
+					TimeRange: timerange.TimeRange{
 						Start: time.Date(2020, 1, 1, 10, 45, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 12, 15, 0, 0, time.UTC),
 					},
@@ -194,7 +196,7 @@ func TestGenerate(t *testing.T) {
 				},
 				{
 					ID: 3,
-					TimeRange: TimeRange{
+					TimeRange: timerange.TimeRange{
 						Start: time.Date(2020, 1, 1, 12, 30, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 13, 30, 0, 0, time.UTC),
 					},
@@ -209,7 +211,7 @@ func TestGenerate(t *testing.T) {
 				pause:         10 * time.Minute,
 				duration:      6 * time.Hour,
 				sessionLength: 90 * time.Minute,
-				excludes: []TimeRange{
+				excludes: []timerange.TimeRange{
 					{
 						Start: time.Date(2020, 1, 1, 15, 0, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 16, 0, 0, 0, time.UTC),
@@ -219,14 +221,14 @@ func TestGenerate(t *testing.T) {
 			want: []Session{
 				{
 					ID: 1,
-					TimeRange: TimeRange{
+					TimeRange: timerange.TimeRange{
 						Start: time.Date(2020, 1, 1, 14, 2, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 15, 0, 0, 0, time.UTC),
 					},
 				},
 				{
 					ID: 2,
-					TimeRange: TimeRange{
+					TimeRange: timerange.TimeRange{
 						Start: time.Date(2020, 1, 1, 16, 0, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 17, 30, 0, 0, time.UTC),
 					},
@@ -234,7 +236,7 @@ func TestGenerate(t *testing.T) {
 				},
 				{
 					ID: 3,
-					TimeRange: TimeRange{
+					TimeRange: timerange.TimeRange{
 						Start: time.Date(2020, 1, 1, 17, 40, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 19, 10, 0, 0, time.UTC),
 					},
@@ -242,7 +244,7 @@ func TestGenerate(t *testing.T) {
 				},
 				{
 					ID: 4,
-					TimeRange: TimeRange{
+					TimeRange: timerange.TimeRange{
 						Start: time.Date(2020, 1, 1, 19, 20, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 20, 50, 0, 0, time.UTC),
 					},
@@ -250,7 +252,7 @@ func TestGenerate(t *testing.T) {
 				},
 				{
 					ID: 5,
-					TimeRange: TimeRange{
+					TimeRange: timerange.TimeRange{
 						Start: time.Date(2020, 1, 1, 21, 0, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 21, 32, 0, 0, time.UTC),
 					},

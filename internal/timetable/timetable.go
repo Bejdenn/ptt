@@ -7,27 +7,28 @@ import (
 	"sort"
 	"text/tabwriter"
 	"time"
+
+	"github.com/Bejdenn/ptt/internal/timerange"
 )
 
 const (
-	TimeOnlyNoSeconds = "15:04"
-	maxDuration       = 1<<63 - 1 // separate constant because the standard library does not export it
+	maxDuration = 1<<63 - 1 // separate constant because the standard library does not export it
 )
 
 type Session struct {
 	ID        int
-	TimeRange TimeRange
+	TimeRange timerange.TimeRange
 	Pause     time.Duration
 }
 
-func Generate(start, end time.Time, pause, duration, sessionLength time.Duration, excludes []TimeRange) (SessionSlice, error) {
+func Generate(start, end time.Time, pause, duration, sessionLength time.Duration, excludes []timerange.TimeRange) (SessionSlice, error) {
 	var (
 		sessions []Session
 		err      error
-		utr, tr  TimeRange
+		utr, tr  timerange.TimeRange
 	)
 
-	utr, err = newUnboundTimeRange(start)
+	utr, err = timerange.NewUnbound(start)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +41,7 @@ func Generate(start, end time.Time, pause, duration, sessionLength time.Duration
 			sessions, err = generate(utr, pause, sessionLength, excludes, duration)
 		}
 	} else {
-		tr, err = newTimeRange(start, end)
+		tr, err = timerange.New(start, end)
 		if err != nil {
 			return nil, err
 		}
@@ -106,7 +107,7 @@ func (s SessionSlice) String() string {
 	for _, u := range s {
 		cumulatedWork += u.TimeRange.Duration()
 		cumulatedTime += u.TimeRange.Duration() + u.Pause
-		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t\n", u.ID, u.TimeRange.Start.Format(TimeOnlyNoSeconds), u.TimeRange.End.Format(TimeOnlyNoSeconds), u.TimeRange.Duration(), u.Pause, cumulatedWork, cumulatedTime)
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t\n", u.ID, u.TimeRange.Start.Format(timerange.TimeOnlyNoSeconds), u.TimeRange.End.Format(timerange.TimeOnlyNoSeconds), u.TimeRange.Duration(), u.Pause, cumulatedWork, cumulatedTime)
 	}
 
 	w.Flush()
@@ -114,7 +115,7 @@ func (s SessionSlice) String() string {
 	return buf.String()
 }
 
-func generate(tr TimeRange, pause, sessionLength time.Duration, excludes []TimeRange, duration ...time.Duration) ([]Session, error) {
+func generate(tr timerange.TimeRange, pause, sessionLength time.Duration, excludes []timerange.TimeRange, duration ...time.Duration) ([]Session, error) {
 	var d time.Duration
 	if len(duration) < 1 {
 		d = maxDuration
@@ -123,8 +124,8 @@ func generate(tr TimeRange, pause, sessionLength time.Duration, excludes []TimeR
 	}
 
 	sessions := []Session{}
-	for _, slot := range tr.subMulti(excludes) {
-		t := TimeRange{slot.Start, time.Time{}}
+	for _, slot := range tr.SubMulti(excludes) {
+		t := timerange.TimeRange{Start: slot.Start, End: time.Time{}}
 
 		for d > 0 && t.Start.Before(slot.End) {
 			t.End = t.Start.Add(time.Minute * time.Duration(math.Min(math.Min(sessionLength.Minutes(), d.Minutes()), slot.End.Sub(t.Start).Minutes())))
