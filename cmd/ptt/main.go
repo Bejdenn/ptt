@@ -11,6 +11,8 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+var now = time.Now().Truncate(time.Minute)
+
 func main() {
 	cli.AppHelpTemplate = fmt.Sprintf(`%s
 END and DURATION are mutually exclusive. If both are defined, the time table will use the value that results in the earlier end time.
@@ -34,7 +36,7 @@ The format of the durations and time values are the same that the Go programming
 				Aliases:     []string{"s"},
 				Usage:       "Set `START` as the start time of the time table.",
 				DefaultText: "current time",
-				Value:       cli.NewTimestamp(time.Now()),
+				Value:       cli.NewTimestamp(now),
 			},
 			&cli.TimestampFlag{
 				Name:        "end",
