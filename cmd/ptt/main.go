@@ -17,6 +17,13 @@ END and DURATION are mutually exclusive. If both are defined, the time table wil
 The format of the durations and time values are the same that the Go programming language uses for its time parsing.
 `, cli.AppHelpTemplate)
 
+	cli.HelpFlag = &cli.BoolFlag{
+		Name:               "help",
+		Aliases:            []string{"h"},
+		Usage:              "Show help",
+		DisableDefaultText: true,
+	}
+
 	(&cli.App{
 		Name:  "ptt",
 		Usage: "Pomodoro time table for the terminal. Interpolates your working times for a better daily overview.",
@@ -80,6 +87,7 @@ The format of the durations and time values are the same that the Go programming
 			fmt.Print(sessions)
 			return nil
 		},
+		HideHelpCommand: true,
 	}).Run(os.Args)
 }
 
