@@ -1,96 +1,135 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
+	"regexp"
+	"runtime/debug"
 
 	"time"
 
 	"github.com/Bejdenn/ptt/internal/timerange"
 	"github.com/Bejdenn/ptt/internal/timetable"
-	"github.com/urfave/cli/v2"
 )
 
 var now = time.Now().Truncate(time.Minute)
 
-func main() {
-	cli.AppHelpTemplate = fmt.Sprintf(`%s
-END and DURATION are mutually exclusive. If both are defined, the time table will use the value that results in the earlier end time.
-The format of the durations and time values are the same that the Go programming language uses for its time parsing.
-`, cli.AppHelpTemplate)
+type excludesMultiFlag []timerange.TimeRange
 
-	cli.HelpFlag = &cli.BoolFlag{
-		Name:               "help",
-		Aliases:            []string{"h"},
-		Usage:              "Show help",
-		DisableDefaultText: true,
+func (e *excludesMultiFlag) String() string {
+	return fmt.Sprint(*e)
+}
+
+var rangePattern = regexp.MustCompile(`\d{2}:\d{2}-\d{2}:\d{2}`)
+
+func (e *excludesMultiFlag) Set(value string) error {
+	print(value, "\n")
+	exclude, err := timerange.Parse(now, rangePattern.FindAllString(value, -1))
+	if err != nil {
+		return err
+	}
+	*e = append(*e, exclude...)
+	return nil
+}
+
+type timeFlag time.Time
+
+func NewTimeFlag(t time.Time) timeFlag {
+	t = timerange.Normalize(now, t)
+	return timeFlag(t)
+}
+
+func (t *timeFlag) String() string {
+	return fmt.Sprint(*t)
+}
+
+func (t *timeFlag) Set(s string) error {
+	parsed, err := time.Parse(timerange.TimeOnlyNoSeconds, s)
+	if err != nil {
+		return fmt.Errorf("could not parse time: %v", err)
+	}
+	*t = NewTimeFlag(parsed)
+	return nil
+}
+
+const (
+	defaultDuration      = time.Duration(0)
+	defaultSessionLength = 90 * time.Minute
+	defaultPause         = 15 * time.Minute
+)
+
+const usage = `Usage:
+    ptt [-s START] [-e END] [-l LENGTH] [-d DURATION] [-p PAUSE] (-x EXCLUDE)...
+Options:
+    -s, --start START            Set START as the start time of the time table. Default is current time.
+    -e, --end END                Set END as the end time of the time table. Ignored if not defined.
+    -l, --session-length LENGTH  Set LENGTH as the length of a single pomodoro session. Default is 90 minutes.
+    -d, --duration DURATION      Set DURATION as the working duration that should be covered by pomodoro sessions.
+    -p, --pause PAUSE            Set PAUSE as the pause duration between pomodoro sessions.
+    -x, --exclude EXCLUDE        Exclude EXCLUDE to prevent from being overlapped by a pomodoro session. Can be repeated.
+	
+END and DURATION are mutually exclusive. If both are defined, the time table will used that ends earlier.
+The format of the durations and time values are the same that the Go programming language uses for its time parsing.`
+
+func init() {
+	flag.Usage = func() {
+		fmt.Fprintln(os.Stderr, usage)
+	}
+}
+
+func main() {
+	var (
+		startFlag         = NewTimeFlag(now)
+		endFlag           = NewTimeFlag(time.Time{})
+		sessionLengthFlag time.Duration
+		durationFlag      time.Duration
+		pauseFlag         time.Duration
+		excludesFlag      excludesMultiFlag
+		versionFlag       bool
+	)
+
+	flag.Var(&startFlag, "start", "set the start time")
+	flag.Var(&startFlag, "s", "set the start time (shorthand)")
+
+	flag.Var(&endFlag, "end", "set the end time")
+	flag.Var(&endFlag, "e", "set the end time (shorthand)")
+
+	flag.DurationVar(&sessionLengthFlag, "session-length", defaultSessionLength, "set the session length")
+	flag.DurationVar(&sessionLengthFlag, "l", defaultSessionLength, "set the session length (shorthand)")
+
+	flag.DurationVar(&durationFlag, "duration", time.Duration(0), "set the working duration")
+	flag.DurationVar(&durationFlag, "d", defaultDuration, "set the working duration (shorthand)")
+
+	flag.DurationVar(&pauseFlag, "pause", defaultPause, "set the pause duration")
+	flag.DurationVar(&pauseFlag, "p", defaultPause, "set the pause duration (shorthand)")
+
+	flag.Var(&excludesFlag, "exclude", "exclude one or several time ranges")
+	flag.Var(&excludesFlag, "x", "exclude one or several time ranges (shorthand)")
+	flag.BoolVar(&versionFlag, "version", false, "Print the version and exit.")
+
+	flag.Parse()
+
+	if versionFlag {
+		if buildInfo, ok := debug.ReadBuildInfo(); ok {
+			fmt.Println(buildInfo.Main.Version)
+			return
+		}
+		fmt.Println("(unknown)")
+		return
 	}
 
-	(&cli.App{
-		Name:  "ptt",
-		Usage: "Pomodoro time table for the terminal. Interpolates your working times for a better daily overview.",
-		Flags: []cli.Flag{
-			&cli.TimestampFlag{
-				Name:        "start",
-				Layout:      timerange.TimeOnlyNoSeconds,
-				Aliases:     []string{"s"},
-				Usage:       "Set `START` as the start time of the time table.",
-				DefaultText: "current time",
-				Value:       cli.NewTimestamp(now),
-			},
-			&cli.TimestampFlag{
-				Name:        "end",
-				Layout:      timerange.TimeOnlyNoSeconds,
-				Aliases:     []string{"e"},
-				Usage:       "Set `END` as the end time of the time table. Ignored if not defined.",
-				DefaultText: "none",
-				Value:       cli.NewTimestamp(time.Time{}),
-				Action: func(c *cli.Context, end *time.Time) error {
-					if !end.IsZero() && end.Before(*c.Timestamp("start")) {
-						*end = end.AddDate(0, 0, 1)
-					}
-					return nil
-				},
-			},
-			&cli.DurationFlag{
-				Name:    "session-length",
-				Value:   90 * time.Minute,
-				Aliases: []string{"l"},
-				Usage:   "Set `LENGTH` as the length of a single pomodoro session.",
-			},
-			&cli.DurationFlag{
-				Name:        "duration",
-				Value:       time.Duration(0),
-				Aliases:     []string{"d"},
-				DefaultText: "none",
-				Usage:       "Set `DURATION` as the working duration that should be covered by pomodoro sessions.",
-			},
-			&cli.DurationFlag{
-				Name:    "pause",
-				Value:   15 * time.Minute,
-				Aliases: []string{"p"},
-				Usage:   "Set `PAUSE` as the pause duration between pomodoro sessions.",
-			},
-			&cli.StringSliceFlag{
-				Name:    "exclude",
-				Aliases: []string{"x"},
-				Usage:   "Exclude `EXCLUDE` to prevent from being overlapped by a pomodoro session. Can be repeated.",
-			},
-		},
-		Action: func(c *cli.Context) error {
-			excludes, err := timerange.Parse(*c.Timestamp("start"), c.StringSlice("exclude"))
-			if err != nil {
-				return fmt.Errorf("cannot parse excludes: %v\n", err)
-			}
+	start, end := time.Time(startFlag), time.Time(endFlag)
 
-			sessions, err := timetable.Generate(*c.Timestamp("start"), *c.Timestamp("end"), c.Duration("pause"), c.Duration("duration"), c.Duration("session-length"), excludes)
-			if err != nil {
-				return fmt.Errorf("cannot generate timetable: %v\n", err)
-			}
+	if end.Before(start) {
+		end = end.AddDate(0, 0, 1)
+	}
 
-			fmt.Print(sessions)
-			return nil
-		},
-		HideHelpCommand: true,
-	}).Run(os.Args)
+	sessions, err := timetable.Generate(start, end, pauseFlag, durationFlag, sessionLengthFlag, excludesFlag)
+	if err != nil {
+		fmt.Printf("cannot generate timetable: %v\n", err)
+		return
+	}
+
+	fmt.Print(sessions)
 }

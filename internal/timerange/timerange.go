@@ -100,11 +100,12 @@ func Parse(ref time.Time, values []string) ([]TimeRange, error) {
 			return nil, fmt.Errorf("could not parse end time: %v", err)
 		}
 
-		excludes = append(excludes, TimeRange{Start: normalize(ref, start), End: normalize(ref, end)})
+		excludes = append(excludes, TimeRange{Start: Normalize(ref, start), End: Normalize(ref, end)})
 	}
 	return excludes, nil
 }
 
-func normalize(ref, t time.Time) time.Time {
+// Normalize takes a reference time and a target time and returns the target time with the date of the reference time.
+func Normalize(ref, t time.Time) time.Time {
 	return time.Date(ref.Year(), ref.Month(), ref.Day(), t.Hour(), t.Minute(), 0, 0, ref.Location())
 }
