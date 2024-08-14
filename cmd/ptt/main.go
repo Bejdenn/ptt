@@ -24,7 +24,6 @@ func (e *excludesMultiFlag) String() string {
 var rangePattern = regexp.MustCompile(`\d{2}:\d{2}-\d{2}:\d{2}`)
 
 func (e *excludesMultiFlag) Set(value string) error {
-	print(value, "\n")
 	exclude, err := timerange.Parse(now, rangePattern.FindAllString(value, -1))
 	if err != nil {
 		return err
