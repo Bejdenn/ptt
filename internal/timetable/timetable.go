@@ -100,12 +100,12 @@ func (s SessionSlice) String() string {
 
 	const padding = 3
 	w := tabwriter.NewWriter(buf, 0, 0, padding, ' ', 0)
-	fmt.Fprintln(w, "ID\tStart\tEnd\tDuration\tPause\tCumulated Work\tCumulated Time")
+	fmt.Fprintln(w, "ID\tStart\tEnd\tDuration\tPause\tCumulated Work")
 
 	cumulatedWork := time.Duration(0)
 	for _, u := range s {
 		cumulatedWork += u.TimeRange.Duration()
-		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t\n", u.ID, u.TimeRange.Start.Format(timerange.TimeOnlyNoSeconds), u.TimeRange.End.Format(timerange.TimeOnlyNoSeconds), u.TimeRange.Duration(), u.Pause, cumulatedWork)
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\n", u.ID, u.TimeRange.Start.Format(timerange.TimeOnlyNoSeconds), u.TimeRange.End.Format(timerange.TimeOnlyNoSeconds), u.TimeRange.Duration(), u.Pause, cumulatedWork)
 	}
 
 	w.Flush()
