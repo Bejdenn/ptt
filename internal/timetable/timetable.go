@@ -74,7 +74,7 @@ func Generate(start, end time.Time, pause, duration, sessionLength time.Duration
 
 	sort.Sort(SessionSlice(sessions))
 
-	for i := 0; i < len(sessions); i++ {
+	for i := range sessions {
 		sessions[i].ID = i + 1
 	}
 
@@ -103,11 +103,9 @@ func (s SessionSlice) String() string {
 	fmt.Fprintln(w, "ID\tStart\tEnd\tDuration\tPause\tCumulated Work\tCumulated Time")
 
 	cumulatedWork := time.Duration(0)
-	cumulatedTime := time.Duration(0)
 	for _, u := range s {
 		cumulatedWork += u.TimeRange.Duration()
-		cumulatedTime += u.TimeRange.Duration() + u.Pause
-		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t\n", u.ID, u.TimeRange.Start.Format(timerange.TimeOnlyNoSeconds), u.TimeRange.End.Format(timerange.TimeOnlyNoSeconds), u.TimeRange.Duration(), u.Pause, cumulatedWork, cumulatedTime)
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t\n", u.ID, u.TimeRange.Start.Format(timerange.TimeOnlyNoSeconds), u.TimeRange.End.Format(timerange.TimeOnlyNoSeconds), u.TimeRange.Duration(), u.Pause, cumulatedWork)
 	}
 
 	w.Flush()
