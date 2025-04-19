@@ -8,7 +8,7 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/Bejdenn/ptt/internal/timerange"
+	"github.com/Bejdenn/timerange"
 )
 
 const (

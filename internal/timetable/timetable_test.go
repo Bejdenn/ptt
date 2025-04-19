@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Bejdenn/ptt/internal/timerange"
+	"github.com/Bejdenn/timerange"
 )
 
 func TestGenerate(t *testing.T) {

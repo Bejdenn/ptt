@@ -9,8 +9,8 @@ import (
 
 	"time"
 
-	"github.com/Bejdenn/ptt/internal/timerange"
 	"github.com/Bejdenn/ptt/internal/timetable"
+	"github.com/Bejdenn/timerange"
 )
 
 var now = time.Now().Truncate(time.Minute)
