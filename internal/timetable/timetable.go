@@ -3,7 +3,6 @@ package timetable
 import (
 	"bytes"
 	"fmt"
-	"math"
 	"sort"
 	"text/tabwriter"
 	"time"
@@ -15,13 +14,25 @@ const (
 	maxDuration = 1<<63 - 1 // separate constant because the standard library does not export it
 )
 
+type SessionLength struct {
+	Min time.Duration
+	Max time.Duration
+}
+
+func NewSessionLength(min, max time.Duration) (SessionLength, error) {
+	if min > max {
+		return SessionLength{}, fmt.Errorf("min must not be greater than max in session-length")
+	}
+	return SessionLength{min, max}, nil
+}
+
 type Session struct {
 	ID        int
 	TimeRange timerange.TimeRange
 	Pause     time.Duration
 }
 
-func Generate(start, end time.Time, pause, duration, sessionLength time.Duration, excludes []timerange.TimeRange) (SessionSlice, error) {
+func Generate(start, end time.Time, pause, duration time.Duration, sessionLength SessionLength, excludes []timerange.TimeRange) (SessionSlice, error) {
 	var (
 		sessions []Session
 		err      error
@@ -115,7 +126,7 @@ func (s SessionSlice) String() string {
 	return buf.String()
 }
 
-func generate(tr timerange.TimeRange, pause, sessionLength time.Duration, excludes []timerange.TimeRange, duration ...time.Duration) ([]Session, error) {
+func generate(tr timerange.TimeRange, pause time.Duration, sessionLength SessionLength, excludes []timerange.TimeRange, duration ...time.Duration) ([]Session, error) {
 	var d time.Duration
 	if len(duration) < 1 {
 		d = maxDuration
@@ -128,7 +139,7 @@ func generate(tr timerange.TimeRange, pause, sessionLength time.Duration, exclud
 		t := timerange.TimeRange{Start: slot.Start, End: time.Time{}}
 
 		for d > 0 && t.Start.Before(slot.End) {
-			t.End = t.Start.Add(time.Minute * time.Duration(math.Min(math.Min(sessionLength.Minutes(), d.Minutes()), slot.End.Sub(t.Start).Minutes())))
+			t.End = t.Start.Add(time.Minute * time.Duration(min(sessionLength.Max.Minutes(), d.Minutes(), slot.End.Sub(t.Start).Minutes())))
 
 			d -= t.Duration()
 
@@ -142,6 +153,14 @@ func generate(tr timerange.TimeRange, pause, sessionLength time.Duration, exclud
 			sessions[len(sessions)-1].Pause = 0
 		}
 	}
+
+	var out SessionSlice
+	for _, s := range sessions {
+		if s.TimeRange.Duration() >= sessionLength.Min {
+			out = append(out, s)
+		}
+	}
+	sessions = out
 
 	return sessions, nil
 }
