@@ -14,7 +14,7 @@ func TestGenerate(t *testing.T) {
 		end           time.Time
 		pause         time.Duration
 		duration      time.Duration
-		sessionLength time.Duration
+		sessionLength SessionLength
 		excludes      []timerange.TimeRange
 	}
 	tests := []struct {
@@ -30,7 +30,7 @@ func TestGenerate(t *testing.T) {
 				end:           time.Date(2020, 1, 1, 19, 30, 0, 0, time.UTC),
 				pause:         10 * time.Minute,
 				duration:      6 * time.Hour,
-				sessionLength: 90 * time.Minute,
+				sessionLength: SessionLength{10 * time.Minute, 90 * time.Minute},
 				excludes: []timerange.TimeRange{
 					{
 						Start: time.Date(2020, 1, 1, 8, 30, 0, 0, time.UTC),
@@ -90,7 +90,7 @@ func TestGenerate(t *testing.T) {
 				end:           time.Date(2020, 1, 1, 14, 30, 0, 0, time.UTC),
 				pause:         15 * time.Minute,
 				duration:      time.Duration(-1),
-				sessionLength: 90 * time.Minute,
+				sessionLength: SessionLength{10 * time.Minute, 90 * time.Minute},
 			},
 			want: []Session{
 				{
@@ -134,7 +134,7 @@ func TestGenerate(t *testing.T) {
 				end:           time.Date(2020, 1, 1, 14, 30, 0, 0, time.UTC),
 				pause:         15 * time.Minute,
 				duration:      time.Duration(-1),
-				sessionLength: 90 * time.Minute,
+				sessionLength: SessionLength{10 * time.Minute, 90 * time.Minute},
 				excludes: []timerange.TimeRange{
 					{
 						Start: time.Date(2020, 1, 1, 10, 0, 0, 0, time.UTC),
@@ -177,7 +177,7 @@ func TestGenerate(t *testing.T) {
 				start:         time.Date(2020, 1, 1, 9, 0, 0, 0, time.UTC),
 				pause:         15 * time.Minute,
 				duration:      time.Duration(-1),
-				sessionLength: 90 * time.Minute,
+				sessionLength: SessionLength{10 * time.Minute, 90 * time.Minute},
 			},
 			wantErr: true,
 		},
@@ -187,7 +187,7 @@ func TestGenerate(t *testing.T) {
 				start:         time.Date(2020, 1, 1, 14, 2, 0, 0, time.UTC),
 				pause:         10 * time.Minute,
 				duration:      6 * time.Hour,
-				sessionLength: 90 * time.Minute,
+				sessionLength: SessionLength{10 * time.Minute, 90 * time.Minute},
 				excludes: []timerange.TimeRange{
 					{
 						Start: time.Date(2020, 1, 1, 15, 0, 0, 0, time.UTC),
@@ -233,6 +233,48 @@ func TestGenerate(t *testing.T) {
 						Start: time.Date(2020, 1, 1, 21, 0, 0, 0, time.UTC),
 						End:   time.Date(2020, 1, 1, 21, 32, 0, 0, time.UTC),
 					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "discard sessions because of minSessionLength",
+			args: args{
+				start:         time.Date(2020, 1, 1, 14, 2, 0, 0, time.UTC),
+				pause:         10 * time.Minute,
+				duration:      6 * time.Hour,
+				sessionLength: SessionLength{60 * time.Minute, 90 * time.Minute},
+				excludes: []timerange.TimeRange{
+					{
+						Start: time.Date(2020, 1, 1, 15, 0, 0, 0, time.UTC),
+						End:   time.Date(2020, 1, 1, 16, 0, 0, 0, time.UTC),
+					},
+				},
+			},
+			want: []Session{
+				{
+					ID: 1,
+					TimeRange: timerange.TimeRange{
+						Start: time.Date(2020, 1, 1, 16, 0, 0, 0, time.UTC),
+						End:   time.Date(2020, 1, 1, 17, 30, 0, 0, time.UTC),
+					},
+					Pause: 10 * time.Minute,
+				},
+				{
+					ID: 2,
+					TimeRange: timerange.TimeRange{
+						Start: time.Date(2020, 1, 1, 17, 40, 0, 0, time.UTC),
+						End:   time.Date(2020, 1, 1, 19, 10, 0, 0, time.UTC),
+					},
+					Pause: 10 * time.Minute,
+				},
+				{
+					ID: 3,
+					TimeRange: timerange.TimeRange{
+						Start: time.Date(2020, 1, 1, 19, 20, 0, 0, time.UTC),
+						End:   time.Date(2020, 1, 1, 20, 50, 0, 0, time.UTC),
+					},
+					Pause: 10 * time.Minute,
 				},
 			},
 			wantErr: false,
