@@ -22,12 +22,13 @@ Usage:
     ptt [-s START] [-e END] [-l LENGTH] [-d DURATION] [-p PAUSE] (-x EXCLUDE)...
 
 Options:
-    -s, --start START            Set START as the start time of the time table. Default is current time.
-    -e, --end END                Set END as the end time of the time table. Ignored if not defined.
-    -l, --session-length LENGTH  Set LENGTH as the length of a single pomodoro session. Default is 90 minutes.
-    -d, --duration DURATION      Set DURATION as the working duration that should be covered by pomodoro sessions.
-    -p, --pause PAUSE            Set PAUSE as the pause duration between pomodoro sessions.
-    -x, --exclude EXCLUDE        Exclude EXCLUDE to prevent from being overlapped by a pomodoro session. Can be repeated.
+    -s, --start START                Set START as the start time of the time table. Default is current time.
+    -e, --end END                    Set END as the end time of the time table. Ignored if not defined.
+    -l, --min-session-length LENGTH  Set LENGTH as the minimum length of a single pomodoro session. Default is 15 minutes.
+    -L, --max-session-length LENGTH  Set LENGTH as the maximum length of a single pomodoro session. Default is 90 minutes.
+    -d, --duration DURATION          Set DURATION as the working duration that should be covered by pomodoro sessions.
+    -p, --pause PAUSE                Set PAUSE as the pause duration between pomodoro sessions.
+    -x, --exclude EXCLUDE            Exclude EXCLUDE to prevent from being overlapped by a pomodoro session. Can be repeated.
 
 END and DURATION are mutually exclusive. If both are defined, the time table will used that ends earlier.
 The format of the durations and time values are the same that the Go programming language uses for its time parsing.
