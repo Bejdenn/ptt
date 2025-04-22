@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"runtime/debug"
 
@@ -11,7 +12,16 @@ import (
 
 	"github.com/Bejdenn/ptt/internal/timetable"
 	"github.com/Bejdenn/timerange"
+	"github.com/ilyakaznacheev/cleanenv"
 )
+
+type Config struct {
+	Defaults struct {
+		Duration      string `toml:"duration" env-default:"-1ns"`
+		SessionLength string `toml:"session-length" env-default:"90m"`
+		Pause         string `toml:"pause" env-default:"15m"`
+	} `toml:"defaults"`
+}
 
 var now = time.Now().Truncate(time.Minute)
 
@@ -55,12 +65,6 @@ func (t *timeFlag) Set(s string) error {
 	return nil
 }
 
-const (
-	defaultDuration      = time.Duration(-1)
-	defaultSessionLength = 90 * time.Minute
-	defaultPause         = 15 * time.Minute
-)
-
 const usage = `Usage:
     ptt [-s START] [-e END] [-l LENGTH] [-d DURATION] [-p PAUSE] (-x EXCLUDE)...
 Options:
@@ -75,6 +79,8 @@ END and DURATION are mutually exclusive. If both are defined, the time table wil
 Defining no END or DURATION will result in an error.
 If any of the END or DURATION yield an empty slice of sessions, no sessions will be generated.
 
+The defaults can be set globally with a configuration file at ($HOME/.config/ptt/config.toml).
+
 The format of the durations and time values are the same that the Go programming language uses for its time parsing.`
 
 func init() {
@@ -83,7 +89,43 @@ func init() {
 	}
 }
 
+func durationParseErr(err error) error {
+	return fmt.Errorf("error while parsing duration: %v\n", err)
+}
+
 func main() {
+	var cfg Config
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error while getting user config directory: %v\n", err)
+		os.Exit(1)
+	}
+
+	err = cleanenv.ReadConfig(filepath.Join(home, ".config", "ptt", "config.toml"), &cfg)
+	if err != nil {
+		fmt.Printf("error while reading config: %v\n", err)
+		os.Exit(1)
+	}
+
+	defaultDuration, err := time.ParseDuration(cfg.Defaults.Duration)
+	if err != nil {
+		fmt.Fprint(os.Stderr, durationParseErr(err))
+		os.Exit(1)
+	}
+
+	defaultSessionLength, err := time.ParseDuration(cfg.Defaults.SessionLength)
+	if err != nil {
+		fmt.Fprint(os.Stderr, durationParseErr(err))
+		os.Exit(1)
+	}
+
+	defaultPause, err := time.ParseDuration(cfg.Defaults.Pause)
+	if err != nil {
+		fmt.Fprint(os.Stderr, durationParseErr(err))
+		os.Exit(1)
+	}
+
 	var (
 		startFlag         = NewTimeFlag(now)
 		endFlag           = NewTimeFlag(time.Time{})
@@ -133,8 +175,8 @@ func main() {
 
 	sessions, err := timetable.Generate(start, end, pauseFlag, durationFlag, sessionLengthFlag, excludesFlag)
 	if err != nil {
-		fmt.Printf("cannot generate timetable: %v\n", err)
-		return
+		fmt.Fprintf(os.Stderr, "cannot generate timetable: %v\n", err)
+		os.Exit(1)
 	}
 
 	fmt.Print(sessions)
