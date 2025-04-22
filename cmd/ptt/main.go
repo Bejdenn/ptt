@@ -35,7 +35,10 @@ func (e *excludesMultiFlag) Set(value string) error {
 type timeFlag time.Time
 
 func NewTimeFlag(t time.Time) timeFlag {
-	t = timerange.Normalize(now, t)
+	// avoid altering zero time, as we indicate absence of end time that way (see https://github.com/Bejdenn/ptt/issues/28)
+	if !t.IsZero() {
+		t = timerange.Normalize(now, t)
+	}
 	return timeFlag(t)
 }
 
@@ -120,7 +123,8 @@ func main() {
 
 	start, end := time.Time(startFlag), time.Time(endFlag)
 
-	if end.Before(start) {
+	if !end.IsZero() && end.Before(start) {
+		// avoid altering zero time, as we indicate absence of end time that way (see https://github.com/Bejdenn/ptt/issues/28)
 		end = end.AddDate(0, 0, 1)
 	}
 
