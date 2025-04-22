@@ -15,11 +15,11 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
-type Config struct {
+type Config[T any] struct {
 	Defaults struct {
-		Duration      string `toml:"duration" env-default:"-1ns"`
-		SessionLength string `toml:"session-length" env-default:"90m"`
-		Pause         string `toml:"pause" env-default:"15m"`
+		Duration      T `toml:"duration" env-default:"-1ns"`
+		SessionLength T `toml:"session-length" env-default:"90m"`
+		Pause         T `toml:"pause" env-default:"15m"`
 	} `toml:"defaults"`
 }
 
@@ -93,8 +93,8 @@ func durationParseErr(err error) error {
 	return fmt.Errorf("error while parsing duration: %v\n", err)
 }
 
-func main() {
-	var cfg Config
+func ReadConfig() Config[time.Duration] {
+	var cfg Config[string]
 
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -108,23 +108,35 @@ func main() {
 		os.Exit(1)
 	}
 
-	defaultDuration, err := time.ParseDuration(cfg.Defaults.Duration)
+	duration, err := time.ParseDuration(cfg.Defaults.Duration)
 	if err != nil {
 		fmt.Fprint(os.Stderr, durationParseErr(err))
 		os.Exit(1)
 	}
 
-	defaultSessionLength, err := time.ParseDuration(cfg.Defaults.SessionLength)
+	sessionLength, err := time.ParseDuration(cfg.Defaults.SessionLength)
 	if err != nil {
 		fmt.Fprint(os.Stderr, durationParseErr(err))
 		os.Exit(1)
 	}
 
-	defaultPause, err := time.ParseDuration(cfg.Defaults.Pause)
+	pause, err := time.ParseDuration(cfg.Defaults.Pause)
 	if err != nil {
 		fmt.Fprint(os.Stderr, durationParseErr(err))
 		os.Exit(1)
 	}
+
+	return Config[time.Duration]{Defaults: struct {
+		Duration      time.Duration "toml:\"duration\" env-default:\"-1ns\""
+		SessionLength time.Duration "toml:\"session-length\" env-default:\"90m\""
+		Pause         time.Duration "toml:\"pause\" env-default:\"15m\""
+	}{
+		duration, sessionLength, pause,
+	}}
+}
+
+func main() {
+	cfg := ReadConfig()
 
 	var (
 		startFlag         = NewTimeFlag(now)
@@ -142,14 +154,14 @@ func main() {
 	flag.Var(&endFlag, "end", "set the end time")
 	flag.Var(&endFlag, "e", "set the end time (shorthand)")
 
-	flag.DurationVar(&sessionLengthFlag, "session-length", defaultSessionLength, "set the session length")
-	flag.DurationVar(&sessionLengthFlag, "l", defaultSessionLength, "set the session length (shorthand)")
+	flag.DurationVar(&sessionLengthFlag, "session-length", cfg.Defaults.SessionLength, "set the session length")
+	flag.DurationVar(&sessionLengthFlag, "l", cfg.Defaults.SessionLength, "set the session length (shorthand)")
 
-	flag.DurationVar(&durationFlag, "duration", defaultDuration, "set the working duration")
-	flag.DurationVar(&durationFlag, "d", defaultDuration, "set the working duration (shorthand)")
+	flag.DurationVar(&durationFlag, "duration", cfg.Defaults.Duration, "set the working duration")
+	flag.DurationVar(&durationFlag, "d", cfg.Defaults.Duration, "set the working duration (shorthand)")
 
-	flag.DurationVar(&pauseFlag, "pause", defaultPause, "set the pause duration")
-	flag.DurationVar(&pauseFlag, "p", defaultPause, "set the pause duration (shorthand)")
+	flag.DurationVar(&pauseFlag, "pause", cfg.Defaults.Pause, "set the pause duration")
+	flag.DurationVar(&pauseFlag, "p", cfg.Defaults.Pause, "set the pause duration (shorthand)")
 
 	flag.Var(&excludesFlag, "exclude", "exclude one or several time ranges")
 	flag.Var(&excludesFlag, "x", "exclude one or several time ranges (shorthand)")
