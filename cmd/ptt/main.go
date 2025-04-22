@@ -56,7 +56,7 @@ func (t *timeFlag) Set(s string) error {
 }
 
 const (
-	defaultDuration      = time.Duration(0)
+	defaultDuration      = time.Duration(-1)
 	defaultSessionLength = 90 * time.Minute
 	defaultPause         = 15 * time.Minute
 )
@@ -72,6 +72,9 @@ Options:
     -x, --exclude EXCLUDE        Exclude EXCLUDE to prevent from being overlapped by a pomodoro session. Can be repeated.
 	
 END and DURATION are mutually exclusive. If both are defined, the time table will used that ends earlier.
+Defining no END or DURATION will result in an error.
+If any of the END or DURATION yield an empty slice of sessions, no sessions will be generated.
+
 The format of the durations and time values are the same that the Go programming language uses for its time parsing.`
 
 func init() {
@@ -100,7 +103,7 @@ func main() {
 	flag.DurationVar(&sessionLengthFlag, "session-length", defaultSessionLength, "set the session length")
 	flag.DurationVar(&sessionLengthFlag, "l", defaultSessionLength, "set the session length (shorthand)")
 
-	flag.DurationVar(&durationFlag, "duration", time.Duration(0), "set the working duration")
+	flag.DurationVar(&durationFlag, "duration", defaultDuration, "set the working duration")
 	flag.DurationVar(&durationFlag, "d", defaultDuration, "set the working duration (shorthand)")
 
 	flag.DurationVar(&pauseFlag, "pause", defaultPause, "set the pause duration")

@@ -25,28 +25,30 @@ func Generate(start, end time.Time, pause, duration, sessionLength time.Duration
 	var (
 		sessions []Session
 		err      error
-		utr, tr  timerange.TimeRange
 	)
 
-	utr, err = timerange.NewUnbound(start)
+	if duration < -1 {
+		return nil, fmt.Errorf("duration cannot be negative. only exception is '-1ns' to indicate absence of the duration value")
+	}
+
+	utr, err := timerange.NewUnbound(start)
 	if err != nil {
 		return nil, err
 	}
 
 	if end.IsZero() {
-		if duration == time.Duration(0) {
-			// neither end nor duration given, so default to 6 hours of work
-			sessions, err = generate(utr, pause, sessionLength, excludes, 6*time.Hour)
+		if duration == -1 {
+			return nil, fmt.Errorf("neither END or DURATION is set. consider passing either of the values via the respective flag")
 		} else {
 			sessions, err = generate(utr, pause, sessionLength, excludes, duration)
 		}
 	} else {
-		tr, err = timerange.New(start, end)
+		tr, err := timerange.New(start, end)
 		if err != nil {
 			return nil, err
 		}
 
-		if duration == time.Duration(0) {
+		if duration == -1 {
 			sessions, err = generate(tr, pause, sessionLength, excludes)
 		} else {
 			c1, err := generate(utr, pause, sessionLength, excludes, duration)
@@ -59,9 +61,9 @@ func Generate(start, end time.Time, pause, duration, sessionLength time.Duration
 			}
 
 			if len(c1) == 0 {
-				sessions = c2
+				return nil, fmt.Errorf("duration-based generation did not result in any sessions, so end-based generation is ignored")
 			} else if len(c2) == 0 {
-				sessions = c1
+				return nil, fmt.Errorf("end-time-based generation did not result in any sessions, so duration-based generation is ignored")
 			} else {
 				if c1[len(c1)-1].TimeRange.End.Before(c2[len(c2)-1].TimeRange.End) {
 					sessions = c1

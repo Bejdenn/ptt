@@ -24,7 +24,7 @@ func TestGenerate(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "end, duration",
+			name: "end, duration, with excludes",
 			args: args{
 				start:         time.Date(2020, 1, 1, 7, 30, 0, 0, time.UTC),
 				end:           time.Date(2020, 1, 1, 19, 30, 0, 0, time.UTC),
@@ -89,6 +89,7 @@ func TestGenerate(t *testing.T) {
 				start:         time.Date(2020, 1, 1, 9, 0, 0, 0, time.UTC),
 				end:           time.Date(2020, 1, 1, 14, 30, 0, 0, time.UTC),
 				pause:         15 * time.Minute,
+				duration:      time.Duration(-1),
 				sessionLength: 90 * time.Minute,
 			},
 			want: []Session{
@@ -132,6 +133,7 @@ func TestGenerate(t *testing.T) {
 				start:         time.Date(2020, 1, 1, 9, 0, 0, 0, time.UTC),
 				end:           time.Date(2020, 1, 1, 14, 30, 0, 0, time.UTC),
 				pause:         15 * time.Minute,
+				duration:      time.Duration(-1),
 				sessionLength: 90 * time.Minute,
 				excludes: []timerange.TimeRange{
 					{
@@ -170,39 +172,14 @@ func TestGenerate(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "no end, duration",
+			name: "no end, no duration",
 			args: args{
 				start:         time.Date(2020, 1, 1, 9, 0, 0, 0, time.UTC),
 				pause:         15 * time.Minute,
-				duration:      4 * time.Hour,
+				duration:      time.Duration(-1),
 				sessionLength: 90 * time.Minute,
 			},
-			want: []Session{
-				{
-					ID: 1,
-					TimeRange: timerange.TimeRange{
-						Start: time.Date(2020, 1, 1, 9, 0, 0, 0, time.UTC),
-						End:   time.Date(2020, 1, 1, 10, 30, 0, 0, time.UTC),
-					},
-					Pause: 15 * time.Minute,
-				},
-				{
-					ID: 2,
-					TimeRange: timerange.TimeRange{
-						Start: time.Date(2020, 1, 1, 10, 45, 0, 0, time.UTC),
-						End:   time.Date(2020, 1, 1, 12, 15, 0, 0, time.UTC),
-					},
-					Pause: 15 * time.Minute,
-				},
-				{
-					ID: 3,
-					TimeRange: timerange.TimeRange{
-						Start: time.Date(2020, 1, 1, 12, 30, 0, 0, time.UTC),
-						End:   time.Date(2020, 1, 1, 13, 30, 0, 0, time.UTC),
-					},
-				},
-			},
-			wantErr: false,
+			wantErr: true,
 		},
 		{
 			name: "no end, duration, with excludes",
